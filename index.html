@@ -1,0 +1,2215 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#3164F4">
+<title>상담관리</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+  /* 레이아웃: 흰 사이드바 + 연한 회색 작업면의 차분한 업무용 화면. 글꼴은 Pretendard 계열 대신 Noto Sans KR 하나로 통일 (가독성 우선) */
+  :root {
+    --bg: #F5F6F8; --surface: #FFFFFF; --surface-2: #F8F9FB; --hover: #F1F3F6;
+    --ink: #111827; --ink-2: #333D4B; --muted: #5F6B7A;
+    --line: #E8EBEF; --line-strong: #D5DAE0;
+    --accent: #3164F4; --accent-ink: #FFFFFF; --accent-soft: #EEF3FF; --accent-line: #C9D7FD;
+    --over: #E5484D; --over-soft: #FFF0F0; --today: #E08A00; --today-soft: #FFF6E5; --done: #12A36B; --done-soft: #E8F7F0;
+    --notice: #FFFBEB; --notice-line: #F6E7B0; --notice-ink: #8A6A00;
+    --shadow: 0 1px 2px rgba(25, 31, 40, .04);
+    --font: "Noto Sans KR", "Pretendard", "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif;
+    --r: 14px; --r-sm: 9px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101215; --surface: #181B20; --surface-2: #1D2127; --hover: #22272E;
+      --ink: #F2F4F7; --ink-2: #D0D6DE; --muted: #9EA8B5;
+      --line: #262B32; --line-strong: #333A43;
+      --accent: #5B85FF; --accent-ink: #FFFFFF; --accent-soft: #1C2742; --accent-line: #2C3F6E;
+      --over: #FF6B6F; --over-soft: #3A1D20; --today: #F5A524; --today-soft: #392A10; --done: #3DD68C; --done-soft: #15302A;
+      --notice: #262214; --notice-line: #3F3820; --notice-ink: #E8C764;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .25);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #101215; --surface: #181B20; --surface-2: #1D2127; --hover: #22272E;
+    --ink: #F2F4F7; --ink-2: #D0D6DE; --muted: #9EA8B5;
+    --line: #262B32; --line-strong: #333A43;
+    --accent: #5B85FF; --accent-ink: #FFFFFF; --accent-soft: #1C2742; --accent-line: #2C3F6E;
+    --over: #FF6B6F; --over-soft: #3A1D20; --today: #F5A524; --today-soft: #392A10; --done: #3DD68C; --done-soft: #15302A;
+    --notice: #262214; --notice-line: #3F3820; --notice-ink: #E8C764;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .25);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; }
+  body { margin: 0; font-family: var(--font); font-size: 15px; line-height: 1.65; letter-spacing: -.005em;
+         background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; }
+  button, input, select, textarea { font: inherit; color: inherit; letter-spacing: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .ic { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7;
+        stroke-linecap: round; stroke-linejoin: round; }
+  .mono { font-variant-numeric: tabular-nums; }
+  .muted { color: var(--muted); }
+
+  /* 버튼 */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 38px; padding: 0 16px;
+         border-radius: var(--r-sm); border: 1px solid var(--line-strong); background: var(--surface);
+         font-weight: 600; font-size: 14px; cursor: pointer; transition: background .15s, border-color .15s; white-space: nowrap; }
+  .btn:hover { background: var(--hover); }
+  .btn .ic { width: 16px; height: 16px; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .btn.primary:hover { filter: brightness(1.06); }
+  .btn.danger-fill { background: var(--over); border-color: var(--over); color: #fff; }
+  .btn.ghost { border-color: transparent; background: transparent; color: var(--ink-2); }
+  .btn.ghost:hover { background: var(--hover); color: var(--ink); }
+  .btn.sm { height: 32px; padding: 0 12px; font-size: 13px; }
+  .icon-btn { width: 32px; height: 32px; padding: 0; display: inline-grid; place-items: center; border-radius: 8px;
+              border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+  .icon-btn .ic { width: 16px; height: 16px; }
+  .icon-btn:hover { background: var(--hover); color: var(--ink); }
+  .icon-btn.danger:hover { color: var(--over); background: var(--over-soft); }
+
+  /* 입력 */
+  .field { display: grid; gap: 6px; min-width: 0; }
+  .field > span { font-size: 14px; font-weight: 600; color: var(--ink-2); }
+  input, select, textarea { width: 100%; border: 1px solid var(--line-strong); background: var(--surface);
+         border-radius: var(--r-sm); padding: 9px 12px; min-height: 42px; transition: border-color .15s, box-shadow .15s; }
+  input::placeholder, textarea::placeholder { color: var(--muted); }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  textarea { resize: vertical; min-height: 110px; line-height: 1.65; }
+  input[type="checkbox"] { width: 20px; height: 20px; min-height: 0; margin: 0; accent-color: var(--accent); cursor: pointer; }
+
+  /* 전체 틀 */
+  .app { display: grid; grid-template-columns: 272px minmax(0, 1fr); height: 100%; }
+
+  /* 사이드바 */
+  aside { background: var(--surface); border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 22px 20px 16px; }
+  .brand-mark { width: 34px; height: 34px; border-radius: 10px; background: var(--accent); color: #fff;
+                display: grid; place-items: center; font-weight: 700; font-size: 15px; }
+  .brand-name { font-weight: 700; font-size: 18px; letter-spacing: -.03em; }
+  .brand-sub { display: none; }
+  .side-tools { display: grid; gap: 8px; padding: 0 14px 14px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; width: 100%; height: 42px; padding: 0 12px; border: 0;
+              border-radius: var(--r-sm); background: transparent; color: var(--ink-2); font-weight: 600; cursor: pointer; text-align: left; }
+  .nav-item:hover { background: var(--hover); color: var(--ink); }
+  .nav-item.active { background: var(--accent-soft); color: var(--accent); }
+  .nav-item .count { margin-left: auto; }
+  .search { position: relative; }
+  .search .ic { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); width: 16px; height: 16px; }
+  .search input { padding-left: 36px; background: var(--surface-2); border-color: var(--line); }
+  .side-add { width: 100%; }
+  .side-row { display: grid; grid-template-columns: 1fr auto; gap: 6px; }
+  .side-row .btn { padding: 0 12px; }
+  .code { display: inline-flex; align-items: center; height: 20px; padding: 0 6px; border-radius: 5px; font-size: 12px; font-weight: 700;
+          background: var(--hover); color: var(--ink-2); font-variant-numeric: tabular-nums; flex: none; letter-spacing: .02em; }
+  .company-item.active .code { background: var(--surface); color: var(--accent); }
+  .title-code { font-size: .6em; height: auto; padding: 3px 9px; vertical-align: .3em; margin-right: 8px; border-radius: 7px; }
+  .d-co .code { margin-right: 6px; vertical-align: 1px; }
+
+  /* 거래처별 기록 검색 */
+  .rec-search { padding: 12px 22px; border-bottom: 1px solid var(--line); }
+  .rec-search input { background: var(--surface-2); border-color: var(--line); }
+  mark { background: #FFE58A; color: #111827; border-radius: 3px; padding: 0 1px; }
+  .s-count { padding: 14px 22px 4px; font-size: 13px; font-weight: 600; color: var(--accent); }
+  .s-count + .log { border-top: 0; }
+  @media (max-width: 760px) { .rec-search { padding: 10px 16px; } }
+
+  /* 로그인 화면 */
+  .auth { position: fixed; inset: 0; z-index: 100; background: var(--bg); display: grid; place-items: center; overflow-y: auto;
+          padding: max(24px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px)); }
+  .auth-card { width: min(400px, 100%); background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 32px 28px;
+               display: grid; gap: 14px; box-shadow: 0 12px 40px -18px rgba(25, 31, 40, .25); }
+  .auth-brand { font-weight: 700; font-size: 22px; letter-spacing: -.03em; color: var(--accent); }
+  .auth-card h2 { margin: 0 0 4px; font-size: 18px; letter-spacing: -.02em; }
+  .auth-card p { margin: 0; }
+  .auth-submit { height: 46px; font-size: 15px; }
+  .auth-err { margin: 0; min-height: 1em; color: var(--over); font-size: 14px; font-weight: 500; }
+  .auth-err:empty { display: none; }
+  /* 내 계정 버튼 */
+  .me-btn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px; border: 0; border-radius: var(--r-sm);
+            background: transparent; cursor: pointer; text-align: left; }
+  .me-btn:hover { background: var(--hover); }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center;
+            font-weight: 700; flex: none; }
+  .me-btn b { display: block; font-size: 14px; }
+  .me-btn small { display: block; font-size: 12px; color: var(--muted); }
+  .me-info { padding: 12px 14px; border-radius: var(--r-sm); background: var(--surface-2); font-size: 14px; color: var(--ink-2); }
+  ul.plain { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; color: var(--ink-2); }
+  ul.plain li.bad { color: var(--over); font-weight: 500; }
+  /* 직원 관리 */
+  .staff-form { display: grid; grid-template-columns: 1fr 1fr 1fr 120px auto; gap: 12px; align-items: end; }
+  .staff-msg { grid-column: 1 / -1; margin: 0; font-size: 14px; font-weight: 500; }
+  .staff-msg:empty { display: none; }
+  .staff-msg.ok { color: var(--done); } .staff-msg.err { color: var(--over); }
+  .staff-list { display: grid; padding: 8px 0; }
+  .staff-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px; align-items: center; padding: 12px 22px; border-top: 1px solid var(--line); }
+  .staff-row:first-child { border-top: 0; }
+  .staff-row.off { opacity: .6; }
+  .staff-name b { font-size: 15px; }
+  .staff-name .muted { font-size: 13px; }
+  .staff-acts { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+  .role { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 12px; background: var(--hover); color: var(--ink-2); }
+  .role.r-admin { background: var(--accent-soft); color: var(--accent); }
+  .role.r-disabled { background: var(--over-soft); color: var(--over); }
+  .danger-text { color: var(--over); }
+  .staff-help b { font-size: 15px; } .staff-help p { margin: 6px 0 0; color: var(--ink-2); font-size: 14px; }
+  .log-meta .author { font-weight: 600; color: var(--ink-2); margin-right: 4px; }
+  @media (max-width: 900px) { .staff-form { grid-template-columns: 1fr 1fr; } .staff-row { grid-template-columns: minmax(0, 1fr) auto; } .staff-acts { grid-column: 1 / -1; justify-content: flex-start; } }
+  .code-row { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; }
+  #fCoCode { text-align: center; font-weight: 700; letter-spacing: .08em; }
+  .steps { margin: 0; padding-left: 22px; display: grid; gap: 16px; }
+  .steps > li { padding-left: 4px; }
+  .steps > li > b { font-size: 15px; }
+  .steps p { margin: 4px 0 8px; color: var(--ink-2); font-size: 14px; }
+  .steps ul { margin: 6px 0 0; padding-left: 0; list-style: none; display: grid; gap: 6px; font-size: 14px; color: var(--ink-2); }
+  .steps ul b { display: inline-block; min-width: 38px; color: var(--ink); }
+  .note { margin: 0; font-size: 13px; color: var(--over); background: var(--over-soft); border-radius: var(--r-sm); padding: 10px 12px; }
+  .list-label { padding: 12px 22px 6px; font-size: 13px; font-weight: 600; color: var(--muted); border-top: 1px solid var(--line); }
+  .company-list { overflow-y: auto; flex: 1; padding: 2px 10px 10px; }
+  .company-item { display: grid; gap: 1px; padding: 10px 12px; border-radius: var(--r-sm); cursor: pointer; }
+  .company-item:hover { background: var(--hover); }
+  .company-item.active { background: var(--accent-soft); }
+  .company-item.active .name { color: var(--accent); }
+  .company-item .row { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .company-item .name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+  .company-item .meta { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .list-empty { padding: 24px 12px; color: var(--muted); font-size: 13px; text-align: center; }
+  .count { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 7px;
+           border-radius: 11px; font-size: 12px; font-weight: 700; background: var(--hover); color: var(--ink-2); flex: none;
+           font-variant-numeric: tabular-nums; }
+  .count.alert { background: var(--over); color: #fff; }
+  .side-foot { border-top: 1px solid var(--line); padding: 12px 14px 14px; display: grid; gap: 8px; }
+  .sync { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--muted); line-height: 1.5; padding: 0 4px; }
+  .sync .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line-strong); margin-top: 5px; flex: none; }
+  .sync.ok .dot { background: var(--done); }
+  .sync.warn .dot { background: var(--today); }
+  .sync.warn { color: var(--ink-2); }
+  .foot-btns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+  .foot-btn { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; height: 52px;
+              padding: 4px; border: 0; border-radius: var(--r-sm); background: transparent; color: var(--ink-2); font-size: 12px;
+              font-weight: 500; cursor: pointer; }
+  .foot-btn:hover { background: var(--hover); color: var(--ink); }
+  .foot-btn .ic { width: 18px; height: 18px; }
+  #btnCloud { grid-column: 1 / -1; flex-direction: row; height: 34px; font-size: 12px; }
+
+  /* 작업면 */
+  main { overflow-y: auto; min-width: 0; }
+  .page { max-width: 1040px; margin: 0 auto; padding: 36px 40px 100px; display: grid; gap: 16px; }
+  .topbar { display: none; }
+  .page-head { display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
+  .page-head > div:first-child { flex: 1; min-width: 0; }
+  .eyebrow { font-size: 14px; font-weight: 500; color: var(--muted); margin-bottom: 4px; }
+  .page-title { margin: 0; font-weight: 700; font-size: 28px; line-height: 1.3; letter-spacing: -.035em; word-break: keep-all; }
+  .page-sub { margin-top: 4px; color: var(--muted); font-size: 14px; }
+  .head-actions { display: flex; gap: 6px; flex-wrap: wrap; padding-top: 22px; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); overflow: hidden; }
+  .panel-head { display: flex; align-items: center; gap: 10px; padding: 18px 22px 0; }
+  .panel-head h2 { margin: 0; font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; letter-spacing: -.02em; }
+  .panel-head h2 .ic { color: var(--muted); }
+  .panel-head .spacer { flex: 1; }
+  .panel-body { padding: 16px 22px 22px; }
+  .empty { padding: 36px 22px; color: var(--muted); text-align: center; font-size: 14px; line-height: 1.7; }
+  .banner { display: flex; gap: 12px; align-items: center; padding: 14px 18px; border-radius: var(--r);
+            background: var(--today-soft); color: var(--ink); }
+  .banner .ic { color: var(--today); }
+  .banner span { flex: 1; font-size: 14px; }
+
+  /* 총괄: 요약 카드 */
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; background: none; border: 0; box-shadow: none; overflow: visible; }
+  .stat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 18px 20px; box-shadow: var(--shadow); }
+  .stat .k { font-size: 14px; font-weight: 600; color: var(--ink-2); }
+  .stat .k i { display: none; }
+  .stat .v { font-size: 30px; font-weight: 700; line-height: 1.2; margin-top: 6px; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+  .stat.over.has { background: var(--over-soft); border-color: transparent; }
+  .stat.over.has .v, .stat.over.has .k { color: var(--over); }
+  .stat.today.has { background: var(--today-soft); border-color: transparent; }
+  .stat.today.has .v, .stat.today.has .k { color: var(--today); }
+  .stat .unit { font-size: 15px; font-weight: 600; margin-left: 2px; color: inherit; opacity: .7; }
+
+  /* 총괄: 마감일 목록 */
+  .dtable { display: grid; padding: 8px 0 6px; }
+  .drow { display: grid; grid-template-columns: 150px minmax(110px, 190px) minmax(0, 1fr) 44px; align-items: center;
+          gap: 0 16px; padding: 0 22px; min-height: 58px; border-top: 1px solid var(--line); cursor: pointer; }
+  .drow:not(.dhead):hover { background: var(--surface-2); }
+  .drow > .stripe, .drow.dhead > span:first-child { display: none; }
+  .drow.dhead { min-height: 34px; cursor: default; font-size: 13px; font-weight: 600; color: var(--muted); border-top: 0; }
+  .d-co { font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .d-text { min-width: 0; display: flex; gap: 8px; align-items: center; color: var(--ink-2); }
+  .d-text b { color: var(--ink); font-weight: 600; flex: none; max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .d-text span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .d-chk { display: grid; place-items: center; }
+
+  /* 기한 표시 */
+  .due { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .due .tag { display: inline-flex; align-items: center; justify-content: center; height: 24px; min-width: 56px; padding: 0 8px; border-radius: 6px;
+              font-size: 13px; font-weight: 700; background: var(--hover); color: var(--ink-2); }
+  .due.over .tag { background: var(--over-soft); color: var(--over); }
+  .due.today .tag { background: var(--today-soft); color: var(--today); }
+  .due.done .tag { color: var(--muted); font-weight: 600; }
+
+  /* 거래처 머리글 */
+  .facts { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 10px; }
+  .fact { display: flex; align-items: center; gap: 6px; font-size: 15px; color: var(--muted); min-width: 0; }
+  .fact .ic { width: 16px; height: 16px; }
+  .fact b { font-weight: 500; color: var(--ink-2); }
+  .tel { color: var(--accent); font-weight: 600; text-decoration: none; border-bottom: 1px solid var(--accent-line); }
+  .tel:hover { border-bottom-color: var(--accent); }
+  .memo { margin-top: 10px; font-size: 14px; color: var(--ink-2); white-space: pre-wrap; background: var(--surface); border: 1px solid var(--line);
+          border-radius: var(--r-sm); padding: 10px 14px; }
+
+  /* 공지 · 반복업무 */
+  .notice-panel { background: var(--notice); border-color: var(--notice-line); box-shadow: none; }
+  .notice-panel h2, .notice-panel h2 .ic { color: var(--notice-ink); }
+  .notice-panel .panel-head { padding-bottom: 8px; }
+  .notice { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 8px 22px; }
+  .notice:last-child { padding-bottom: 16px; }
+  .notice .rep { font-size: 13px; font-weight: 700; color: var(--notice-ink); background: var(--surface); border-radius: 6px;
+                 padding: 3px 9px; min-width: 44px; text-align: center; }
+  .notice .txt { white-space: pre-wrap; word-break: break-word; font-weight: 500; }
+  .notice .acts { display: flex; gap: 2px; }
+  .notice-empty { padding: 4px 22px 18px; color: var(--notice-ink); font-size: 14px; }
+
+  /* 기록 작성 */
+  .seg { display: flex; padding: 4px; border-radius: 10px; background: var(--hover); gap: 2px; }
+  .seg label { position: relative; flex: 1; }
+  .seg input { position: absolute; opacity: 0; pointer-events: none; }
+  .seg span { display: flex; align-items: center; justify-content: center; height: 34px; padding: 0 14px; border-radius: 7px; font-size: 14px; font-weight: 500;
+              color: var(--ink-2); cursor: pointer; transition: background .15s, color .15s; white-space: nowrap; }
+  .seg input:checked + span { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(25, 31, 40, .12); font-weight: 700; }
+  .seg input:focus-visible + span { outline: 2px solid var(--accent); }
+  .compose { display: grid; gap: 14px; }
+  .compose-row { display: grid; grid-template-columns: minmax(260px, auto) 170px 170px minmax(0, 1fr); gap: 12px; align-items: end; }
+  .compose-foot { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .check { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-2); cursor: pointer; margin-right: auto; }
+
+  /* 기록 목록 */
+  .tabs { display: flex; gap: 6px; padding: 16px 22px 12px; overflow-x: auto; border-bottom: 1px solid var(--line); }
+  .tab { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px; border: 1px solid var(--line); background: var(--surface);
+         border-radius: 17px; color: var(--ink-2); font-weight: 500; cursor: pointer; white-space: nowrap; font-size: 14px; }
+  .tab:hover { background: var(--hover); }
+  .tab.on { background: var(--ink); border-color: var(--ink); color: var(--surface); font-weight: 600; }
+  .tab .n { font-size: 12px; opacity: .65; font-variant-numeric: tabular-nums; }
+  .log { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: 16px; padding: 18px 22px; border-top: 1px solid var(--line); }
+  .tabs + .log { border-top: 0; }
+  .log-date { font-variant-numeric: tabular-nums; }
+  .log-date .md { font-size: 15px; font-weight: 700; color: var(--ink); line-height: 1.3; }
+  .log-date .wd { font-size: 13px; color: var(--muted); }
+  .log-main { min-width: 0; display: grid; gap: 6px; }
+  .log-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .type { display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border-radius: 6px; font-size: 13px; font-weight: 700;
+          background: var(--accent-soft); color: var(--accent); flex: none; }
+  .type.t-통화 { background: var(--done-soft); color: var(--done); }
+  .type.t-요청 { background: var(--today-soft); color: var(--today); }
+  .type.t-기타, .type.t-방문, .type.t-메일 { background: var(--hover); color: var(--ink-2); }
+  .log-title { font-weight: 700; font-size: 15px; }
+  .log-body { white-space: pre-wrap; word-break: break-word; color: var(--ink-2); }
+  .log-meta { display: flex; align-items: center; gap: 2px; font-size: 13px; color: var(--muted); }
+  .log-meta .when { margin-right: 6px; font-variant-numeric: tabular-nums; }
+  .log.done .log-title, .log.done .log-body { color: var(--muted); }
+  .status { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px; border-radius: 17px; cursor: pointer;
+            font-size: 14px; font-weight: 600; border: 1px solid var(--line-strong); color: var(--ink-2); background: var(--surface);
+            user-select: none; white-space: nowrap; transition: background .15s, color .15s, border-color .15s; }
+  .status input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+  .status .box { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid currentColor; display: grid; place-items: center; }
+  .status .box .ic { width: 11px; height: 11px; stroke-width: 3; opacity: 0; }
+  .status:hover { border-color: var(--done); color: var(--done); }
+  .status.is-done { background: var(--done-soft); border-color: transparent; color: var(--done); }
+  .status.is-done .box { background: var(--done); border-color: var(--done); color: #fff; }
+  .status.is-done .box .ic { opacity: 1; }
+  .status:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* 떠 있는 총괄 버튼 */
+  .fab { position: fixed; z-index: 20; right: calc(24px + env(safe-area-inset-right, 0px));
+         bottom: calc(24px + env(safe-area-inset-bottom, 0px)); height: 50px; padding: 0 22px; border-radius: 25px; border: 0;
+         background: var(--accent); color: #fff; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;
+         cursor: pointer; box-shadow: 0 8px 24px -6px rgba(49, 100, 244, .55); }
+  .fab:hover { filter: brightness(1.06); }
+  .fab .count.alert { background: #fff; color: var(--over); }
+
+  /* 대화상자 */
+  dialog { border: 0; border-radius: 18px; background: var(--surface); color: var(--ink); padding: 0;
+           width: min(480px, calc(100vw - 24px)); box-shadow: 0 24px 64px -16px rgba(0, 0, 0, .35); }
+  dialog::backdrop { background: rgba(15, 20, 28, .45); }
+  .dlg-head { display: flex; align-items: center; gap: 10px; padding: 22px 24px 0; }
+  .dlg-head h3 { margin: 0; font-size: 19px; font-weight: 700; flex: 1; letter-spacing: -.03em; }
+  .dlg-body { padding: 18px 24px; display: grid; gap: 14px; max-height: calc(100vh - 180px); overflow-y: auto; }
+  .dlg-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 4px 24px 22px; }
+  .dlg-foot .btn { min-width: 84px; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  #askMsg { margin: 0; line-height: 1.7; white-space: pre-wrap; font-size: 15px; padding-top: 6px; }
+
+  /* 저장 위치 선택 */
+  #dlgSettings { width: min(580px, calc(100vw - 24px)); }
+  .opt { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 12px; padding: 16px; border: 1px solid var(--line);
+         border-radius: var(--r); cursor: pointer; transition: border-color .15s, background .15s; }
+  .opt:hover { border-color: var(--line-strong); }
+  .opt:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.disabled { opacity: .5; cursor: not-allowed; }
+  .opt input { margin-top: 3px; accent-color: var(--accent); width: 18px; height: 18px; min-height: 0; }
+  .opt-title { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; }
+  .opt-title .rec { font-size: 11px; font-weight: 700; color: var(--accent); background: var(--surface); border-radius: 10px; padding: 1px 8px; }
+  .opt ul { margin: 8px 0 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 14px; color: var(--ink-2); }
+  .opt li { display: flex; gap: 8px; }
+  .opt li::before { content: ""; width: 4px; height: 4px; border-radius: 50%; background: var(--muted); margin-top: 9px; flex: none; }
+  .opt li.good { color: var(--done); font-weight: 600; } .opt li.good::before { background: var(--done); }
+  .opt li.bad { color: var(--over); font-weight: 600; } .opt li.bad::before { background: var(--over); }
+  .opt-note { font-size: 12px; color: var(--today); margin-top: 8px; font-weight: 500; }
+  .opt-note:empty { display: none; }
+  #btnPickFolder { margin-top: 10px; }
+
+  @media (max-width: 1000px) {
+    .compose-row { grid-template-columns: 1fr 1fr; }
+    .compose-row .seg-wrap, .compose-row .title-f { grid-column: 1 / -1; }
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .drow { grid-template-columns: 140px minmax(0, 1fr) 44px; grid-template-rows: auto auto; padding-block: 10px; }
+    .drow .d-co, .drow .d-text { grid-column: 2; }
+    .drow .d-due { grid-column: 1; grid-row: 1 / span 2; } .drow .d-chk { grid-column: 3; grid-row: 1 / span 2; }
+    .drow.dhead { display: none; }
+    .dtable { padding-top: 12px; }
+  }
+  @media (max-width: 760px) {
+    .app { display: block; height: auto; }
+    aside { min-height: 100vh; min-height: 100dvh; border-right: 0; padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+    main { display: none; }
+    body.show-detail aside { display: none; }
+    body.show-detail main { display: block; }
+    .page { padding: 0 max(16px, env(safe-area-inset-right, 0px)) 110px max(16px, env(safe-area-inset-left, 0px)); gap: 12px; }
+    .topbar { display: flex; align-items: center; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 15; height: 54px;
+              margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding: 0 6px; background: var(--bg); }
+    .page-title { font-size: 24px; }
+    .head-actions { padding-top: 0; }
+    .stat { padding: 14px 16px; }
+    .stat .v { font-size: 26px; }
+    .drow { grid-template-columns: minmax(0, 1fr) 40px; gap: 4px 12px; padding: 14px 16px; }
+    .drow .stripe { display: none; }
+    .drow .d-due, .drow .d-co, .drow .d-text { grid-column: 1; grid-row: auto; }
+    .drow .d-chk { grid-column: 2; grid-row: 1 / span 3; }
+    .d-text b { max-width: none; }
+    .d-text { flex-wrap: wrap; }
+    .log { grid-template-columns: 44px minmax(0, 1fr); padding: 16px; gap: 12px; }
+    .log .log-side { grid-column: 2; }
+    .notice { padding: 8px 16px; }
+    .panel-head { padding: 16px 16px 0; } .panel-body { padding: 14px 16px 18px; }
+    .tabs { padding: 14px 16px 12px; }
+    .notice-empty { padding: 4px 16px 16px; }
+    .two { grid-template-columns: 1fr; }
+    input, select, textarea { font-size: 16px; }
+    input[type="date"] { min-width: 0; padding-inline: 8px; }
+    .seg span { padding: 0 8px; }
+    .facts { flex-direction: column; gap: 4px; }
+    .fact { white-space: nowrap; }
+    /* 휴대폰에서는 누르기 쉬운 전화 버튼 모양 */
+    .tel { display: inline-flex; align-items: center; height: 34px; padding: 0 14px; border: 0; border-radius: 17px;
+           background: var(--accent-soft); margin-left: 2px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-dash" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 16v6"/><path d="M8.5 3h7l-1 6 3.5 3v2.5H6V12l3.5-3z"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18h10a4 4 0 0 0 .6-7.95A6 6 0 0 0 6.2 9.3 4.4 4.4 0 0 0 7 18z"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-device" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 20V9M7 14l5-5 5 5M5 4h14"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17.5v.5"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+  <symbol id="i-id" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10h6M7 14h10"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-sheet" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 3v18"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
+</svg>
+
+<div class="app">
+  <aside>
+    <div class="brand">
+      
+      <div><div class="brand-name">상담관리</div><div class="brand-sub">거래처 상담 · 업무 기록</div></div>
+    </div>
+    <div class="side-tools">
+      <button class="nav-item" id="btnDash"><svg class="ic"><use href="#i-dash"/></svg>총괄 · 기한 업무<span id="dashBadge"></span></button>
+      <button class="nav-item" id="btnStaff" hidden><svg class="ic"><use href="#i-user"/></svg>직원 관리</button>
+      <label class="search"><svg class="ic"><use href="#i-search"/></svg>
+        <input id="search" type="search" placeholder="코드, 회사명, 사업자번호" autocomplete="off" aria-label="거래처 검색"></label>
+      <div class="side-row">
+        <button class="btn side-add" id="btnAddCompany"><svg class="ic"><use href="#i-plus"/></svg>거래처 추가</button>
+        <button class="btn" id="btnCoExcel" title="엑셀로 거래처 추가·수정·삭제"><svg class="ic"><use href="#i-sheet"/></svg>엑셀로 관리</button>
+      </div>
+    </div>
+    <div class="list-label" id="listLabel">거래처</div>
+    <div class="company-list" id="companyList"></div>
+    <div class="side-foot">
+      <button class="me-btn" id="meBox" hidden></button>
+      <div id="syncStatus" class="sync"></div>
+      <div class="foot-btns">
+        <button class="foot-btn" id="btnSettings"><svg class="ic"><use href="#i-sliders"/></svg>저장 위치</button>
+        <button class="foot-btn" id="btnCloud" hidden></button>
+        <button class="foot-btn" id="btnExcel"><svg class="ic"><use href="#i-sheet"/></svg>엑셀</button>
+        <button class="foot-btn" id="btnExport"><svg class="ic"><use href="#i-download"/></svg>백업 저장</button>
+        <button class="foot-btn" id="btnImport"><svg class="ic"><use href="#i-upload"/></svg>불러오기</button>
+      </div>
+      <input type="file" id="importFile" accept=".json" hidden>
+      <input type="file" id="coFile" accept=".xlsx" hidden>
+    </div>
+  </aside>
+  <main id="main"></main>
+</div>
+<div class="auth" id="authScreen" hidden></div>
+
+<!-- 내 계정 (Firebase) -->
+<dialog id="dlgMe">
+  <form id="formMe">
+    <div class="dlg-head"><h3>내 계정</h3>
+      <button type="button" class="icon-btn" aria-label="닫기" onclick="this.closest('dialog').close()"><svg class="ic"><use href="#i-close"/></svg></button></div>
+    <div class="dlg-body">
+      <div class="me-info" id="meInfo"></div>
+      <b>비밀번호 바꾸기</b>
+      <label class="field"><span>지금 비밀번호</span><input type="password" name="cur" id="fMeCur" autocomplete="current-password"></label>
+      <div class="two">
+        <label class="field"><span>새 비밀번호</span><input type="password" name="pw" id="fMePw" autocomplete="new-password" placeholder="6자 이상"></label>
+        <label class="field"><span>새 비밀번호 확인</span><input type="password" name="pw2" id="fMePw2" autocomplete="new-password"></label>
+      </div>
+      <p class="auth-err" id="meErr"></p>
+    </div>
+    <div class="dlg-foot">
+      <button type="button" class="btn ghost" id="btnLogout">로그아웃</button>
+      <span style="flex:1"></span>
+      <button class="btn primary" type="submit">비밀번호 바꾸기</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- PC 자동 백업 (Firebase 사용 시) -->
+<dialog id="dlgFbBackup">
+  <form id="formFbBackup">
+    <div class="dlg-head"><h3>PC 자동 백업</h3>
+      <button type="button" class="icon-btn" aria-label="닫기" onclick="this.closest('dialog').close()"><svg class="ic"><use href="#i-close"/></svg></button></div>
+    <div class="dlg-body">
+      <p style="margin:0;color:var(--ink-2)">데이터는 Firebase에 실시간으로 저장되어 PC·휴대폰·직원 모두에게 공유됩니다. 여기서는 추가로 이 PC의 폴더에 백업 파일을 남길 수 있습니다.</p>
+      <label class="check"><input type="checkbox" id="fbFolderOn">이 PC 폴더에 자동 백업하기</label>
+      <ul class="plain">
+        <li>내용이 바뀔 때마다 clients.json과 backups 폴더(날짜별)에 저장합니다.</li>
+        <li>MYBOX·원드라이브 동기화 폴더를 고르면 그 클라우드에도 백업이 올라갑니다.</li>
+        <li class="bad">이 PC가 켜져 있고 앱이 열려 있을 때만 백업됩니다.</li>
+      </ul>
+      <div class="opt-note" id="fbFolderNote"></div>
+      <div><button type="button" class="btn sm" id="btnFbPick">폴더 선택</button></div>
+    </div>
+    <div class="dlg-foot">
+      <button type="button" class="btn ghost" onclick="this.closest('dialog').close()">취소</button>
+      <button class="btn primary" type="submit">적용</button>
+    </div>
+  </form>
+</dialog>
+<button class="fab" id="btnFab"><svg class="ic"><use href="#i-dash"/></svg>총괄<span id="fabBadge"></span></button>
+
+<!-- 거래처 추가/수정 -->
+<dialog id="dlgCompany">
+  <form method="dialog" id="formCompany">
+    <div class="dlg-head"><h3 id="dlgCompanyTitle">거래처 추가</h3>
+      <button type="button" class="icon-btn" aria-label="닫기" onclick="this.closest('dialog').close('cancel')"><svg class="ic"><use href="#i-close"/></svg></button></div>
+    <div class="dlg-body">
+      <div class="code-row">
+        <label class="field"><span>코드</span><input name="code" id="fCoCode" inputmode="numeric" maxlength="4" placeholder="0001" required></label>
+        <label class="field"><span>회사명</span><input name="name" id="fCoName" required></label>
+      </div>
+      <label class="field"><span>사업자등록번호</span><input name="bizNo" id="fCoBiz" class="mono" inputmode="numeric" placeholder="000-00-00000" maxlength="12"></label>
+      <div class="two">
+        <label class="field"><span>담당자</span><input name="manager" id="fCoManager"></label>
+        <label class="field"><span>연락처</span><input name="phone" id="fCoPhone" inputmode="tel"></label>
+      </div>
+      <label class="field"><span>메모</span><textarea name="memo" id="fCoMemo" rows="3"></textarea></label>
+    </div>
+    <div class="dlg-foot">
+      <button type="button" class="btn ghost" onclick="this.closest('dialog').close('cancel')">취소</button>
+      <button class="btn primary" value="ok">저장</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- 거래처 엑셀로 관리 -->
+<dialog id="dlgExcel">
+  <div class="dlg-head"><h3>거래처 엑셀로 관리</h3>
+    <button type="button" class="icon-btn" aria-label="닫기" onclick="this.closest('dialog').close()"><svg class="ic"><use href="#i-close"/></svg></button></div>
+  <div class="dlg-body">
+    <ol class="steps">
+      <li><b>거래처 엑셀 받기</b>
+        <p>지금 등록된 거래처 목록을 엑셀 파일로 받습니다.</p>
+        <button type="button" class="btn sm" id="btnCoDown"><svg class="ic"><use href="#i-download"/></svg>거래처 엑셀 받기</button></li>
+      <li><b>엑셀에서 고치기</b>
+        <ul>
+          <li><b>추가</b> 맨 아래 빈 줄에 적습니다. 코드를 비워 두면 자동으로 매겨집니다.</li>
+          <li><b>수정</b> 칸 내용을 고칩니다. 코드를 바꾸면 사업자등록번호나 회사명으로 같은 거래처를 찾아 코드를 바꿉니다.</li>
+          <li><b>삭제</b> 그 거래처의 줄을 통째로 지웁니다.</li>
+        </ul></li>
+      <li><b>수정한 엑셀 올리기</b>
+        <p>바뀌는 내용을 먼저 보여 드리고, ‘적용’을 눌러야 반영됩니다.</p>
+        <button type="button" class="btn sm primary" id="btnCoUp"><svg class="ic"><use href="#i-upload"/></svg>수정한 엑셀 올리기</button></li>
+    </ol>
+    <p class="note">거래처를 삭제하면 그 거래처의 상담기록과 공지도 함께 삭제됩니다.</p>
+  </div>
+</dialog>
+
+<!-- 확인 / 안내 창 -->
+<dialog id="dlgAsk">
+  <form method="dialog">
+    <div class="dlg-body"><p id="askMsg"></p></div>
+    <div class="dlg-foot">
+      <button type="button" class="btn ghost" id="askCancel" onclick="this.closest('dialog').close('cancel')">취소</button>
+      <button class="btn primary" value="ok" id="askOk">확인</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- 저장·백업 위치 설정 -->
+<dialog id="dlgSettings">
+  <form id="formSettings">
+    <div class="dlg-head"><h3>저장 · 백업 위치</h3>
+      <button type="button" class="icon-btn" aria-label="닫기" onclick="this.closest('dialog').close('cancel')"><svg class="ic"><use href="#i-close"/></svg></button></div>
+    <div class="dlg-body">
+      <label class="opt" id="optCloud">
+        <input type="radio" name="mode" value="cloud">
+        <div>
+          <div class="opt-title"><svg class="ic"><use href="#i-cloud"/></svg>원드라이브 <span class="rec">추천</span></div>
+          <ul>
+            <li>내용을 바꿀 때마다 1초 안에 원드라이브에 저장되고, 다른 기기에는 30초 안에 반영됩니다.</li>
+            <li class="good">휴대폰 사용·백업 가능. 컴퓨터가 꺼져 있어도 됩니다.</li>
+            <li>날짜별 백업 사본을 매일 자동 보관합니다 (OneDrive › 앱 › 상담관리 › backups).</li>
+            <li>인터넷이 끊기면 기기에 보관했다가 연결되면 자동으로 올립니다.</li>
+          </ul>
+          <div class="opt-note" id="cloudNote"></div>
+        </div>
+      </label>
+      <label class="opt" id="optFolder">
+        <input type="radio" name="mode" value="folder">
+        <div>
+          <div class="opt-title"><svg class="ic"><use href="#i-folder"/></svg>내 컴퓨터 폴더</div>
+          <ul>
+            <li>내용을 바꿀 때마다 선택한 폴더에 저장하고, backups 폴더에 날짜별 백업을 남깁니다.</li>
+            <li class="bad">컴퓨터가 켜져 있고 이 앱이 열려 있을 때만 저장됩니다.</li>
+            <li class="bad">휴대폰 사용·백업 불가. 휴대폰은 컴퓨터 폴더에 접근할 수 없습니다.</li>
+            <li>PC의 크롬·엣지에서만 쓸 수 있습니다. MYBOX·원드라이브 동기화 폴더를 고르면 클라우드에도 올라갑니다.</li>
+          </ul>
+          <div class="opt-note" id="folderNote"></div>
+          <button type="button" class="btn sm" id="btnPickFolder">폴더 선택</button>
+        </div>
+      </label>
+      <label class="opt">
+        <input type="radio" name="mode" value="local">
+        <div>
+          <div class="opt-title"><svg class="ic"><use href="#i-device"/></svg>이 기기에만</div>
+          <ul>
+            <li>이 브라우저 안에만 저장되고, 자동 백업은 없습니다.</li>
+            <li class="bad">휴대폰과 공유 불가</li>
+            <li>왼쪽 아래 '백업 저장'으로 직접 백업해야 합니다.</li>
+          </ul>
+        </div>
+      </label>
+    </div>
+    <div class="dlg-foot">
+      <button type="button" class="btn ghost" onclick="this.closest('dialog').close('cancel')">취소</button>
+      <button class="btn primary" type="submit">적용</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- 공지 추가/수정 -->
+<dialog id="dlgNotice">
+  <form method="dialog" id="formNotice">
+    <div class="dlg-head"><h3 id="dlgNoticeTitle">공지 추가</h3>
+      <button type="button" class="icon-btn" aria-label="닫기" onclick="this.closest('dialog').close('cancel')"><svg class="ic"><use href="#i-close"/></svg></button></div>
+    <div class="dlg-body">
+      <label class="field"><span>주기</span>
+        <select name="repeat" id="fNoticeRepeat">
+          <option>필독</option><option>매일</option><option>매주</option>
+          <option>매월</option><option>분기</option><option>매년</option>
+        </select></label>
+      <label class="field"><span>내용</span><textarea name="text" id="fNoticeText" required placeholder="예) 매월 5일 세금계산서 발행 / 납품 전날 확인 전화 필수"></textarea></label>
+    </div>
+    <div class="dlg-foot">
+      <button type="button" class="btn ghost" onclick="this.closest('dialog').close('cancel')">취소</button>
+      <button class="btn primary" value="ok">저장</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="config.js"></script>
+<script>
+const CFG = window.APP_CONFIG || {};
+const LS = { data: 'cm2-data', dirty: 'cm2-dirty', token: 'cm2-token', pkce: 'cm2-pkce',
+             backup: 'cm2-lastbackup', connected: 'cm2-connected' };
+const KEYS = ['companies', 'notices', 'logs'];
+const LOG_TYPES = ['상담', '통화', '요청', '기타'];
+const LOG_FILTERS = [
+  ['all', '전체', () => true],
+  ['call', '통화', l => l.type === '통화'],
+  ['nocall', '통화 제외', l => l.type !== '통화'],
+  ['todo', '미완료', l => !l.done],
+  ['done', '완료', l => l.done],
+];
+
+const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+const lsDel = k => { try { localStorage.removeItem(k); } catch {} };
+
+// 저장 위치: 'cloud'(원드라이브) | 'folder'(내 컴퓨터 폴더) | 'local'(이 기기 브라우저)
+const folderSupported = 'showDirectoryPicker' in window;
+let mode = lsGet('cm2-mode', CFG.clientId ? 'cloud' : 'local');
+if ((mode === 'cloud' && !CFG.clientId) || (mode === 'folder' && !folderSupported)) mode = 'local';
+// config.js에 Firebase 설정이 있으면 로그인 + 직원 공유 모드 (이때는 데이터가 Firebase에만 저장됨)
+const FB_ON = !!(CFG.firebase && CFG.firebase.apiKey) && !CFG.preview;
+if (FB_ON) mode = 'firebase';
+const $ = id => document.getElementById(id);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const today = () => ymd(new Date());
+const addDays = n => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + n); return d; };
+const fmtTime = t => new Date(t).toLocaleString('ko-KR', { dateStyle: 'short', timeStyle: 'short' });
+const isMobile = () => matchMedia('(max-width: 760px)').matches;
+const ic = name => `<svg class="ic" aria-hidden="true"><use href="#i-${name}"/></svg>`;
+const WEEK = '일월화수목금토';
+const md = s => `${+s.slice(5, 7)}.${String(+s.slice(8, 10)).padStart(2, '0')}`;  // 2026-10-27 → 10.27
+const wd = s => WEEK[new Date(s + 'T00:00').getDay()];
+// 앱 안에서 띄우는 확인 창 (브라우저 기본 confirm/alert 대신)
+function ask(msg, { ok = '확인', cancel = true, danger = false } = {}) {
+  const dlg = $('dlgAsk');
+  $('askMsg').textContent = msg;
+  $('askOk').textContent = ok;
+  $('askOk').classList.toggle('danger-fill', danger);
+  $('askCancel').hidden = !cancel;
+  dlg.returnValue = '';
+  dlg.showModal();
+  return new Promise(res => dlg.addEventListener('close', () => res(dlg.returnValue === 'ok'), { once: true }));
+}
+const notify = msg => ask(msg, { cancel: false });
+
+/* ================= 데이터 ================= */
+function emptyDb() { return { version: 2, companies: [], notices: [], logs: [] }; }
+function normalize(d) {
+  if (!d || typeof d !== 'object') return emptyDb();
+  if (d.version === 2) return { version: 2, companies: d.companies || [], notices: d.notices || [], logs: d.logs || [] };
+  // 이전 버전(거래처관리.html) 백업 변환
+  const out = emptyDb(), now = Date.now();
+  for (const c of d.companies || []) {
+    out.companies.push({ id: c.id, name: c.name, manager: c.manager || '', phone: c.phone || '', memo: c.memo || '', updatedAt: now });
+    for (const n of c.notices || []) out.notices.push({ ...n, companyId: c.id, updatedAt: now });
+    for (const l of c.logs || []) out.logs.push({ ...l, companyId: c.id, due: l.due || '', updatedAt: now });
+  }
+  return out;
+}
+// 같은 항목은 더 최근에 수정된 쪽을 남김 (PC·휴대폰 동시 수정 대비)
+function mergeDb(a, b) {
+  const out = { version: 2 }, cutoff = Date.now() - 180 * 864e5;
+  for (const k of KEYS) {
+    const m = new Map();
+    for (const x of [...(a[k] || []), ...(b[k] || [])]) {
+      const y = m.get(x.id);
+      if (!y || (x.updatedAt || 0) > (y.updatedAt || 0)) m.set(x.id, x);
+    }
+    out[k] = [...m.values()].filter(x => !(x.deleted && x.updatedAt < cutoff));
+  }
+  return out;
+}
+const sig = d => KEYS.map(k => d[k].map(x => x.id + ':' + x.updatedAt).sort().join(',')).join('|');
+
+let db = FB_ON ? emptyDb() : normalize(lsGet(LS.data, null));
+// 미리보기에서 처음 열면 예시 거래처로 채워서 보여줌
+if (CFG.preview && !db.companies.length) {
+  const now = Date.now(), d = n => { const x = new Date(); x.setDate(x.getDate() + n); return ymd(x); };
+  db = { version: 2,
+    companies: [
+      { id: 'ex1', code: '0001', name: '(예시) 한빛상사', bizNo: '123-45-67890', manager: '김민준', phone: '010-1234-5678', memo: '납품은 오전에만 가능', updatedAt: now },
+      { id: 'ex2', code: '0002', name: '(예시) 대성물산', bizNo: '214-86-12345', manager: '이서연', phone: '02-555-1234', memo: '', updatedAt: now },
+      { id: 'ex3', code: '0003', name: '(예시) 푸른식품', bizNo: '305-12-54321', manager: '박지훈', phone: '031-777-8899', memo: '', updatedAt: now },
+    ],
+    notices: [
+      { id: 'exn1', companyId: 'ex1', repeat: '매월', text: '매월 5일 세금계산서 발행', updatedAt: now },
+      { id: 'exn2', companyId: 'ex1', repeat: '필독', text: '납품 전날 담당자에게 확인 전화 필수', updatedAt: now },
+      { id: 'exn3', companyId: 'ex2', repeat: '매주', text: '매주 월요일 재고 현황 메일 발송', updatedAt: now },
+    ],
+    logs: [
+      { id: 'exl1', companyId: 'ex1', type: '요청', date: d(-4), due: d(-1), title: '견적서 발송', content: '부품 200개 단가 견적 요청받음', done: false, created: now - 4e5, updatedAt: now },
+      { id: 'exl2', companyId: 'ex2', type: '통화', date: d(0), due: d(0), title: '샘플 전달', content: '신제품 샘플 2종 오늘 퀵 발송 약속', done: false, created: now - 3e5, updatedAt: now },
+      { id: 'exl3', companyId: 'ex3', type: '상담', date: d(-1), due: d(3), title: '계약서 검토', content: '연간 공급 계약서 초안 검토 후 회신', done: false, created: now - 2e5, updatedAt: now },
+      { id: 'exl4', companyId: 'ex1', type: '통화', date: d(-2), due: d(9), title: '납품 일정 조율', content: '다음 달 납품 일정 확정 필요', done: false, created: now - 1e5, updatedAt: now },
+      { id: 'exl5', companyId: 'ex1', type: '상담', date: d(-7), due: '', title: '단가 협의', content: '단가 3% 인하 합의 완료', done: true, doneAt: now - 5e5, created: now - 6e5, updatedAt: now },
+    ] };
+}
+const live = arr => arr.filter(x => !x.deleted);
+const companies = () => live(db.companies);
+const companyById = id => db.companies.find(c => c.id === id && !c.deleted);
+const noticesOf = cid => live(db.notices).filter(n => n.companyId === cid);
+const logsOf = cid => live(db.logs).filter(l => l.companyId === cid);
+const touch = x => { x.updatedAt = Date.now(); return x; };
+const remove = x => { x.deleted = true; touch(x); };
+
+// 거래처 코드: 숫자 4자리(0001~9999). 엑셀에서 1로 바뀐 값도 0001로 되돌림
+const normCode = s => {
+  const t = String(s ?? '').trim();
+  if (!t) return '';
+  const n = /^\d+(\.0+)?$/.test(t) ? Number(t) : NaN;
+  return n >= 1 && n <= 9999 ? String(n).padStart(4, '0') : null;  // null = 잘못된 코드
+};
+function nextCode(used = new Set(companies().map(c => c.code))) {
+  const pad = n => String(n).padStart(4, '0');
+  const max = Math.max(0, ...[...used].map(Number).filter(n => n > 0));
+  for (let n = max + 1; n <= 9999; n++) if (!used.has(pad(n))) return pad(n);
+  for (let n = 1; n <= 9999; n++) if (!used.has(pad(n))) return pad(n);
+  return '';
+}
+const byCode = (a, b) => (a.code || '9999').localeCompare(b.code || '9999') || a.name.localeCompare(b.name, 'ko');
+const codeTag = c => c?.code ? `<span class="code">${esc(c.code)}</span>` : '';
+// 코드가 없는 기존 거래처에는 이름순으로 자동 부여
+function ensureCodes() {
+  const missing = companies().filter(c => !c.code).sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+  if (!missing.length) return false;
+  const used = new Set(companies().map(c => c.code).filter(Boolean));
+  for (const c of missing) { c.code = nextCode(used); used.add(c.code); touch(c); }
+  return true;
+}
+if (!FB_ON && ensureCodes()) { lsSet(LS.data, db); lsSet(LS.dirty, true); }
+
+// 바뀐 내용 저장: Firebase 모드면 Firebase로, 아니면 이 기기 + (원드라이브/폴더)
+function commit() {
+  if (canAdmin()) ensureCodes();
+  if (FB_ON) fbFlush();
+  else { lsSet(LS.data, db); lsSet(LS.dirty, true); scheduleSync(); }
+  scheduleFolderSave();
+  render();
+}
+
+/* ================= 화면 상태 ================= */
+let view = 'dashboard';
+let selectedId = null;
+let filter = 'all';
+let editingLogId = null;
+
+function openCompany(id) {
+  view = 'company'; selectedId = id; filter = 'all'; editingLogId = null; logQ = '';
+  document.body.classList.add('show-detail');
+  render(); $('main').scrollTo(0, 0); window.scrollTo(0, 0);
+}
+function showDashboard() {
+  view = 'dashboard'; selectedId = null; editingLogId = null;
+  document.body.classList.add('show-detail');
+  render(); window.scrollTo(0, 0);
+}
+
+// 기한 표시: D-day 태그 + 날짜(요일)
+function dueInfo(due) {
+  if (!due) return null;
+  const diff = Math.round((new Date(due) - new Date(today())) / 864e5);
+  const cls = diff < 0 ? 'over' : diff === 0 ? 'today' : '';
+  const tag = diff < 0 ? `D+${-diff}` : diff === 0 ? 'D-DAY' : `D-${diff}`;
+  return { cls, tag, html: `<span class="tag">${tag}</span>${md(due)} ${wd(due)}` };
+}
+const dueChip = (due, done) => {
+  const d = dueInfo(due);
+  return d ? `<span class="due ${done ? 'done' : d.cls}" title="기한 ${esc(due)}">${done ? `<span class="tag">기한</span>${md(due)} ${wd(due)}` : d.html}</span>` : '';
+};
+function openTasks() {
+  return live(db.logs).filter(l => !l.done && companyById(l.companyId));
+}
+
+/* ================= 사이드바 ================= */
+// 회사명 또는 사업자등록번호(숫자만 입력해도 됨)로 검색
+function matchesSearch(c) {
+  const q = $('search').value.trim().toLowerCase();
+  if (!q) return true;
+  const qd = q.replace(/\D/g, '');
+  return c.name.toLowerCase().includes(q)
+    || (qd && qd === q && qd.length <= 4 && String(c.code || '').includes(qd))
+    || (qd.length >= 3 && String(c.bizNo || '').replace(/\D/g, '').includes(qd));
+}
+function renderList() {
+  const q = $('search').value.trim();
+  const t = today();
+  const urgent = openTasks().filter(l => l.due && l.due <= t).length;
+  const badge = urgent ? `<span class="count alert" title="기한 지남·오늘 마감">${urgent}</span>` : '';
+  $('dashBadge').innerHTML = badge;
+  $('fabBadge').innerHTML = badge;
+  $('btnDash').classList.toggle('active', view === 'dashboard');
+  // 권한에 따라 보이는 버튼 (직원은 거래처 추가·엑셀 관리·불러오기·직원 관리를 못 봄)
+  const admin = canAdmin();
+  $('btnStaff').hidden = !(FB_ON && me && admin);
+  $('btnStaff').classList.toggle('active', view === 'staff');
+  document.querySelector('.side-row').hidden = !admin;
+  $('btnImport').hidden = !admin;
+  $('btnSettings').hidden = !admin;
+  if (FB_ON) $('btnSettings').lastChild.textContent = 'PC 백업';
+  $('meBox').hidden = !me;
+  if (me) $('meBox').innerHTML = `<span class="avatar">${esc((me.name || '?').slice(0, 1))}</span>
+    <span><b>${esc(me.name || '')}</b><small>${me.role === 'admin' ? '관리자' : '직원'}${me.org ? ' · ' + esc(me.org) : ''}</small></span>`;
+
+  const list = companies()
+    .filter(matchesSearch)
+    .sort(byCode);
+  $('listLabel').textContent = q ? `검색 결과 ${list.length}` : `거래처 ${list.length}`;
+  const el = $('companyList');
+  if (!list.length) {
+    el.innerHTML = `<div class="list-empty">${q ? '일치하는 거래처가 없습니다.' : '아직 등록된 거래처가 없습니다.<br>위의 ‘거래처 추가’로 시작하세요.'}</div>`;
+    return;
+  }
+  el.innerHTML = list.map(c => {
+    const open = logsOf(c.id).filter(l => !l.done);
+    const over = open.filter(l => l.due && l.due < t).length;
+    const chip = over ? `<span class="count alert" title="기한 지난 업무">${over}</span>`
+               : open.length ? `<span class="count" title="미완료 업무">${open.length}</span>` : '';
+    return `<div class="company-item ${view === 'company' && c.id === selectedId ? 'active' : ''}" data-id="${c.id}" role="button" tabindex="0">
+      <div class="row">${codeTag(c)}<span class="name">${esc(c.name)}</span>${chip}</div>
+      <div class="meta">${esc(c.bizNo || c.phone || c.manager || '—')}</div>
+    </div>`;
+  }).join('');
+}
+$('companyList').addEventListener('click', e => {
+  const item = e.target.closest('.company-item');
+  if (item) openCompany(item.dataset.id);
+});
+
+/* ================= 거래처별 기록 검색 ================= */
+// 거래처 화면의 기록 목록 위 검색창. 여러 단어를 띄어 쓰면 모두 들어 있는 기록만 찾음 (제목·내용·작성자)
+let logQ = '';
+const searchTerms = q => String(q || '').toLowerCase().split(/\s+/).filter(Boolean);
+// 찾은 단어에 형광 표시 (글자는 안전하게 이스케이프)
+function hl(text, terms) {
+  const s = String(text || ''), low = s.toLowerCase(), marks = [];
+  for (const t of terms) for (let i = low.indexOf(t); i >= 0; i = low.indexOf(t, i + t.length)) marks.push([i, i + t.length]);
+  marks.sort((a, b) => a[0] - b[0]);
+  let out = '', pos = 0;
+  for (const [a, b] of marks) { if (a < pos) continue; out += esc(s.slice(pos, a)) + `<mark>${esc(s.slice(a, b))}</mark>`; pos = b; }
+  return out + esc(s.slice(pos));
+}
+$('companyList').addEventListener('keydown', e => {
+  const item = e.target.closest('.company-item');
+  if (item && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openCompany(item.dataset.id); }
+});
+$('search').addEventListener('input', () => {
+  renderList();
+  if (isMobile() || !$('search').value.trim()) return;
+  const hits = companies().filter(matchesSearch);
+  if (hits.length === 1 && hits[0].id !== selectedId) openCompany(hits[0].id);
+});
+$('btnDash').onclick = showDashboard;
+$('btnFab').onclick = showDashboard;
+
+/* ================= 총괄 화면 ================= */
+// 기한이 있는 미완료 업무를 마감일이 가까운 순서로: 기한 | 회사명 | 내용 | 완료
+function renderDashboard() {
+  const t = today(), week = ymd(addDays(7));
+  const rows = openTasks().filter(l => l.due).sort((a, b) => a.due.localeCompare(b.due) || a.created - b.created);
+  const count = fn => rows.filter(fn).length;
+  const nOver = count(l => l.due < t), nToday = count(l => l.due === t);
+  const now = new Date();
+  const stat = (cls, label, n) =>
+    `<div class="stat ${cls} ${n ? 'has' : ''}"><div class="k"><i></i>${label}</div><div class="v">${n}<span class="unit">건</span></div></div>`;
+  return `
+    <div class="page-head"><div>
+      <div class="eyebrow">${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 ${WEEK[now.getDay()]}요일</div>
+      <h1 class="page-title">총괄 · 기한 업무</h1>
+      <div class="page-sub">기한이 있는 미완료 업무를 마감일이 가까운 순서로 모았습니다.</div>
+    </div>
+    <div class="head-actions"><button class="btn sm" data-act="excel">${ic('sheet')}엑셀 다운로드</button></div></div>
+    <div class="panel stats">
+      ${stat('over', '기한 지남', nOver)}${stat('today', '오늘 마감', nToday)}
+      ${stat('week', '7일 이내', count(l => l.due > t && l.due <= week))}${stat('all', '기한 업무 전체', rows.length)}
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>${ic('cal')}마감일 가까운 순</h2></div>
+      ${rows.length ? `<div class="dtable">
+        <div class="drow dhead"><span></span><span>기한</span><span>회사명</span><span>내용</span><span style="text-align:center">완료</span></div>
+        ${rows.map(l => {
+          const d = dueInfo(l.due);
+          return `<div class="drow ${d.cls}" data-open="${l.companyId}" title="눌러서 ${esc(companyById(l.companyId).name)}(으)로 이동">
+            <span class="stripe"></span>
+            <span class="d-due">${dueChip(l.due)}</span>
+            <span class="d-co">${codeTag(companyById(l.companyId))}${esc(companyById(l.companyId).name)}</span>
+            <span class="d-text"><span class="type t-${esc(l.type)}">${esc(l.type)}</span>${l.title ? `<b>${esc(l.title)}</b>` : ''}<span>${esc(l.content)}</span></span>
+            <span class="d-chk"><input type="checkbox" data-act="toggle" data-id="${l.id}" aria-label="수행 완료로 표시" title="수행 완료로 표시"></span>
+          </div>`; }).join('')}</div>`
+        : `<div class="empty">기한이 있는 미완료 업무가 없습니다.<br>거래처에서 기록을 쓸 때 ‘기한’을 넣으면 여기에 모입니다.</div>`}
+    </div>`;
+}
+
+/* ================= 거래처 화면 ================= */
+function captureDraft() {
+  const f = $('formLog');
+  if (!f || !f.content.value.trim() && !f.title.value.trim()) return null;
+  return { companyId: selectedId, editingLogId, values: {
+    type: f.type.value, date: f.date.value, due: f.due.value, title: f.title.value,
+    content: f.content.value, done: f.done.checked } };
+}
+function renderCompany(c) {
+  const all = logsOf(c.id);
+  const active = LOG_FILTERS.find(f => f[0] === filter) || LOG_FILTERS[0];
+  const notices = noticesOf(c.id);
+
+  const types = LOG_TYPES.includes(editingType()) ? LOG_TYPES : [...LOG_TYPES, editingType()];
+
+  return `
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">거래처</div>
+        <h1 class="page-title">${c.code ? `<span class="code title-code" title="거래처 코드">${esc(c.code)}</span>` : ''}${esc(c.name)}</h1>
+        <div class="facts">
+          <span class="fact">${ic('id')}사업자등록번호 <b class="mono">${esc(c.bizNo || '—')}</b></span>
+          <span class="fact">${ic('user')}담당자 <b>${esc(c.manager || '—')}</b></span>
+          <span class="fact">${ic('phone')}연락처 ${telLinks(c.phone)}</span>
+        </div>
+        ${c.memo ? `<div class="memo">${esc(c.memo)}</div>` : ''}
+      </div>
+      ${canAdmin() ? `<div class="head-actions">
+        <button class="btn sm" data-act="edit-company">${ic('edit')}정보 수정</button>
+        <button class="btn sm ghost" data-act="del-company" title="거래처 삭제" aria-label="거래처 삭제">${ic('trash')}</button>
+      </div>` : ''}
+    </div>
+
+    <section class="panel notice-panel" aria-label="공지 · 반복업무">
+      <div class="panel-head"><h2>${ic('pin')}공지 · 반복업무</h2><span class="spacer"></span>
+        ${canAdmin() ? `<button class="btn sm ghost" data-act="add-notice">${ic('plus')}공지 추가</button>` : ''}</div>
+      ${notices.length ? notices.map(n => `
+        <div class="notice">
+          <span class="rep">${esc(n.repeat)}</span>
+          <div class="txt">${esc(n.text)}</div>
+          <div class="acts">${canAdmin() ? `
+            <button class="icon-btn" data-act="edit-notice" data-id="${n.id}" aria-label="공지 수정" title="수정">${ic('edit')}</button>
+            <button class="icon-btn danger" data-act="del-notice" data-id="${n.id}" aria-label="공지 삭제" title="삭제">${ic('trash')}</button>` : ''}
+          </div>
+        </div>`).join('')
+        : `<div class="notice-empty">${canAdmin() ? `${esc(c.name)}에 반복해야 하거나 꼭 알아야 할 업무를 등록하면 여기 맨 위에 항상 표시됩니다.` : '등록된 공지가 없습니다.'}</div>`}
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h2>${ic(editingLogId ? 'edit' : 'plus')}${editingLogId ? '기록 수정' : '새 기록'}</h2></div>
+      <form id="formLog" class="panel-body compose">
+        <div class="compose-row">
+          <div class="field seg-wrap"><span>구분</span>
+            <div class="seg" role="radiogroup" aria-label="구분">${types.map(t =>
+              `<label><input type="radio" name="type" value="${esc(t)}"><span>${esc(t)}</span></label>`).join('')}</div></div>
+          <label class="field"><span>작성일</span><input type="date" name="date" id="fLogDate" required></label>
+          <label class="field"><span>기한 <span class="muted">(선택)</span></span><input type="date" name="due" id="fLogDue"></label>
+          <label class="field title-f"><span>제목 <span class="muted">(선택)</span></span><input name="title" id="fLogTitle" placeholder="예) 견적서 발송"></label>
+        </div>
+        <textarea name="content" id="fLogContent" required placeholder="통화 내용, 상담 일지, 요청 사항을 적어 주세요"></textarea>
+        <div class="compose-foot">
+          <label class="check"><input type="checkbox" name="done" id="fLogDone">수행 완료로 기록</label>
+          ${editingLogId ? `<button type="button" class="btn ghost" data-act="cancel-edit">취소</button>` : ''}
+          <button class="btn primary" type="submit">${ic('check')}${editingLogId ? '수정 저장' : '기록 추가'}</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="tabs" role="tablist">
+        ${LOG_FILTERS.map(([key, label, fn]) =>
+          `<button class="tab ${active[0] === key ? 'on' : ''}" role="tab" aria-selected="${active[0] === key}" data-filter="${key}">${label}<span class="n">${all.filter(fn).length}</span></button>`).join('')}
+      </div>
+      <div class="rec-search">
+        <label class="search">${ic('search')}<input id="logSearch" type="search" value="${esc(logQ)}" autocomplete="off"
+          placeholder="${esc(c.name)} 기록에서 찾기 (제목·내용·작성자)" aria-label="이 거래처 기록 검색"></label>
+      </div>
+      <div id="logList">${logListHtml(c)}</div>
+    </section>`;
+}
+// 거래처 기록 목록: 위 탭(전체·통화…) + 검색어로 거른 결과. 검색어는 형광 표시
+function logListHtml(c) {
+  const active = LOG_FILTERS.find(f => f[0] === filter) || LOG_FILTERS[0];
+  const terms = searchTerms(logQ);
+  const logs = logsOf(c.id).filter(active[2]).filter(l => !terms.length
+      || terms.every(t => `${l.title || ''} ${l.content || ''} ${l.authorName || ''}`.toLowerCase().includes(t)))
+    .sort((a, b) => (b.date + b.created).localeCompare(a.date + a.created));
+  const mark = s => terms.length ? hl(s, terms) : esc(s);
+  const head = terms.length ? `<div class="s-count">“${esc(logQ.trim())}” 검색 결과 ${logs.length}건</div>` : '';
+  if (!logs.length) return head + `<div class="empty">${terms.length ? `“${esc(logQ.trim())}”이(가) 들어 있는 기록이 없습니다.`
+    : filter === 'all' ? '아직 기록이 없습니다. 위에서 첫 기록을 작성하세요.' : '이 조건에 맞는 기록이 없습니다.'}</div>`;
+  return head + logs.map(l => `
+        <article class="log ${l.done ? 'done' : ''}">
+          <div class="log-date"><div class="md">${md(l.date)}</div><div class="wd">${wd(l.date)}요일</div></div>
+          <div class="log-main">
+            <div class="log-top">
+              <span class="type t-${esc(l.type)}">${esc(l.type)}</span>
+              ${l.title ? `<span class="log-title">${mark(l.title)}</span>` : ''}
+              ${dueChip(l.due, l.done)}
+            </div>
+            <div class="log-body">${mark(l.content)}</div>
+            <div class="log-meta">
+              ${l.authorName ? `<span class="author">${mark(l.authorName)}</span>` : ''}
+              <span class="when">${l.done && l.doneAt ? '완료 ' + fmtTime(l.doneAt) : '작성 ' + fmtTime(l.created)}</span>
+              <button class="icon-btn" data-act="edit-log" data-id="${l.id}" aria-label="기록 수정" title="수정">${ic('edit')}</button>
+              ${canDelLog(l) ? `<button class="icon-btn danger" data-act="del-log" data-id="${l.id}" aria-label="기록 삭제" title="삭제">${ic('trash')}</button>` : ''}
+            </div>
+          </div>
+          <div class="log-side">
+            <label class="status ${l.done ? 'is-done' : ''}">
+              <input type="checkbox" data-act="toggle" data-id="${l.id}" ${l.done ? 'checked' : ''}>
+              <span class="box">${ic('check')}</span>${l.done ? '수행 완료' : '미수행'}
+            </label>
+          </div>
+        </article>`).join('');
+}
+function bindLogSearch(c) {
+  $('logSearch').addEventListener('input', e => { logQ = e.target.value; $('logList').innerHTML = logListHtml(c); });
+}
+// 연락처를 누르면 전화가 걸리도록 (여러 번호는 , 또는 / 로 구분)
+function telLinks(phone) {
+  const nums = String(phone || '').split(/[,/]/).map(s => s.trim()).filter(Boolean);
+  if (!nums.length) return '<b>—</b>';
+  return nums.map(n => {
+    const digits = n.replace(/[^\d+]/g, '');
+    return digits.length >= 7
+      ? `<a class="tel mono" href="tel:${esc(digits)}" title="${esc(n)}(으)로 전화 걸기">${esc(n)}</a>`
+      : `<b class="mono">${esc(n)}</b>`;
+  }).join(' ');
+}
+// 수정 중인 기록의 구분 (예전 '방문'·'메일' 같은 구분도 그대로 보이도록)
+function editingType() {
+  const l = editingLogId && db.logs.find(x => x.id === editingLogId);
+  return l ? l.type : LOG_TYPES[0];
+}
+function bindLogForm(c, draft) {
+  const f = $('formLog');
+  const editing = editingLogId && db.logs.find(l => l.id === editingLogId);
+  const v = draft && draft.companyId === c.id && draft.editingLogId === editingLogId ? draft.values
+          : editing ? editing
+          : { type: '상담', date: today(), due: '', title: '', content: '', done: false };
+  f.type.value = [...f.type].some(r => r.value === v.type) ? v.type : LOG_TYPES[0]; f.date.value = v.date; f.due.value = v.due || '';
+  f.title.value = v.title || ''; f.content.value = v.content; f.done.checked = !!v.done;
+
+  f.addEventListener('submit', e => {
+    e.preventDefault();
+    const data = { type: f.type.value, date: f.date.value, due: f.due.value, title: f.title.value.trim(),
+                   content: f.content.value.trim(), done: f.done.checked };
+    if (!data.content) return;
+    if (editing) {
+      data.doneAt = data.done ? (editing.done ? editing.doneAt : Date.now()) : null;
+      Object.assign(editing, data); touch(editing);
+    } else {
+      db.logs.push(touch({ id: uid(), companyId: c.id, created: Date.now(), doneAt: data.done ? Date.now() : null, ...data,
+                           ...(me ? { authorUid: me.uid, authorName: me.name } : {}) }));
+    }
+    editingLogId = null;
+    f.content.value = ''; f.title.value = '';
+    commit();
+  });
+}
+
+/* ================= 메인 렌더 ================= */
+function renderMain() {
+  // 기록 검색어를 입력하는 중에는 목록만 새로 고쳐서 입력이 끊기지 않게
+  if (view === 'company' && document.activeElement?.id === 'logSearch' && $('logList') && companyById(selectedId)) {
+    $('logList').innerHTML = logListHtml(companyById(selectedId)); return;
+  }
+  const draft = captureDraft();
+  const main = $('main');
+  const c = view === 'company' && companyById(selectedId);
+  if (view === 'company' && !c) view = 'dashboard';
+  const banner = syncState.status === 'auth'
+    ? `<div class="banner">${ic('alert')}<span>원드라이브 로그인이 필요합니다. 지금 입력하는 내용은 이 기기에 저장되고, 로그인하면 자동으로 올라갑니다.</span>
+       <button class="btn sm primary" data-act="login">로그인</button></div>`
+    : syncState.status === 'folder-perm'
+    ? `<div class="banner">${ic('alert')}<span>내 컴퓨터 폴더에 저장하려면 허용이 필요합니다. 허용하기 전까지는 이 기기(브라우저)에만 저장됩니다.</span>
+       <button class="btn sm primary" data-act="folder-perm">폴더 저장 허용</button></div>` : '';
+  const staffView = !c && view === 'staff' && FB_ON && me && canAdmin();
+  main.innerHTML = `<div class="page"><div class="topbar"><button class="btn ghost sm" data-act="back">${ic('back')}거래처 목록</button></div>${banner}`
+    + (c ? renderCompany(c) : staffView ? renderStaff() : renderDashboard()) + '</div>';
+  if (c) { bindLogForm(c, draft); bindLogSearch(c); }
+  if (staffView) bindStaffForm();
+}
+
+$('main').addEventListener('click', e => {
+  // 라벨을 누르면 안쪽 체크박스에 클릭이 한 번 더 전달되므로, 라벨 자체의 클릭은 무시
+  if (e.target.closest('label') && !e.target.matches('input')) return;
+  const fb = e.target.closest('[data-filter]');
+  if (fb) { filter = fb.dataset.filter; renderMain(); return; }
+  const btn = e.target.closest('[data-act]');
+  if (!btn) {
+    const row = e.target.closest('[data-open]');
+    if (row) openCompany(row.dataset.open);
+    return;
+  }
+  const id = btn.dataset.id;
+  const c = companyById(selectedId);
+  switch (btn.dataset.act) {
+    case 'back': document.body.classList.remove('show-detail'); window.scrollTo(0, 0); break;
+    case 'login': login(); break;
+    case 'excel': exportExcel(); break;
+    case 'folder-perm':
+      folderReady(true).then(ok => ok ? folderLoad() : setSync('folder-perm')).catch(err => setSync('error', err.message));
+      break;
+    case 'toggle': {
+      const l = db.logs.find(x => x.id === id);
+      l.done = btn.checked; l.doneAt = l.done ? Date.now() : null; touch(l);
+      commit(); break;
+    }
+    case 'edit-log': editingLogId = id; renderMain(); $('formLog').scrollIntoView({ behavior: 'smooth' }); break;
+    case 'cancel-edit': editingLogId = null; renderMain(); break;
+    case 'del-log':
+      ask('이 기록을 삭제할까요?', { ok: '삭제', danger: true })
+        .then(ok => { if (ok) { remove(db.logs.find(x => x.id === id)); commit(); } });
+      break;
+    case 'add-notice': openNotice(null); break;
+    case 'edit-notice': openNotice(db.notices.find(n => n.id === id)); break;
+    case 'del-notice':
+      ask('이 공지를 삭제할까요?', { ok: '삭제', danger: true })
+        .then(ok => { if (ok) { remove(db.notices.find(n => n.id === id)); commit(); } });
+      break;
+    case 'edit-company': openCompanyDlg(c); break;
+    case 'del-company':
+      ask(`'${c.name}' 거래처와 모든 기록을 삭제할까요?`, { ok: '삭제', danger: true }).then(ok => {
+        if (!ok) return;
+        remove(companyById(c.id) || c);
+        noticesOf(c.id).forEach(remove);
+        logsOf(c.id).forEach(remove);
+        view = 'dashboard'; selectedId = null; commit();
+      });
+      break;
+  }
+});
+
+/* ================= 거래처 다이얼로그 ================= */
+let companyTarget = null;
+function openCompanyDlg(c) {
+  companyTarget = c;
+  const f = $('formCompany');
+  $('dlgCompanyTitle').textContent = c ? '거래처 수정' : '거래처 추가';
+  f.code.value = c ? (c.code || '') : nextCode();
+  f.code.setCustomValidity('');
+  f.name.value = c ? c.name : $('search').value.trim();
+  f.bizNo.value = c?.bizNo || '';
+  f.manager.value = c?.manager || ''; f.phone.value = c?.phone || ''; f.memo.value = c?.memo || '';
+  $('dlgCompany').returnValue = '';
+  $('dlgCompany').showModal();
+}
+// 코드는 숫자만, 저장할 때 4자리로 맞추고 다른 거래처와 겹치면 막음
+$('formCompany').code.addEventListener('input', e => {
+  e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
+  e.target.setCustomValidity('');
+});
+$('formCompany').addEventListener('submit', e => {
+  const f = e.target, code = normCode(f.code.value);
+  const dup = code && companies().find(c => c.code === code && c !== companyTarget);
+  const msg = !code ? '코드는 0001부터 9999 사이의 숫자로 적어 주세요.'
+            : dup ? `코드 ${code}은(는) 이미 ‘${dup.name}’에서 쓰고 있습니다. 다른 코드를 적어 주세요.` : '';
+  f.code.setCustomValidity(msg);
+  if (msg) { e.preventDefault(); f.code.reportValidity(); return; }
+  f.code.value = code;
+});
+// 사업자등록번호 입력 시 000-00-00000 형식으로 자동 정리
+const fmtBizNo = s => {
+  const d = String(s || '').replace(/\D/g, '').slice(0, 10);
+  return d.length > 5 ? `${d.slice(0, 3)}-${d.slice(3, 5)}-${d.slice(5)}` : d.length > 3 ? `${d.slice(0, 3)}-${d.slice(3)}` : d;
+};
+$('formCompany').bizNo.addEventListener('input', e => { e.target.value = fmtBizNo(e.target.value); });
+$('btnAddCompany').onclick = () => openCompanyDlg(null);
+$('dlgCompany').addEventListener('close', async e => {
+  if (e.target.returnValue !== 'ok') return;
+  const f = $('formCompany');
+  const data = { code: normCode(f.code.value) || nextCode(), name: f.name.value.trim(), bizNo: fmtBizNo(f.bizNo.value), manager: f.manager.value.trim(),
+                 phone: f.phone.value.trim(), memo: f.memo.value.trim() };
+  if (!data.name) return;
+  // 창을 연 사이 다른 기기에서 바뀌었을 수 있으니 최신 거래처를 다시 찾아서 수정
+  const target = companyTarget && (companyById(companyTarget.id) || companyTarget);
+  if (target) { Object.assign(target, data); touch(target); commit(); return; }
+  if (companies().some(c => c.name === data.name)
+      && !(await ask('같은 이름의 거래처가 이미 있습니다. 그래도 추가할까요?', { ok: '추가' }))) return;
+  const c = touch({ id: uid(), ...data });
+  db.companies.push(c);
+  commit(); openCompany(c.id);
+});
+
+/* ================= 공지 다이얼로그 (거래처별) ================= */
+let noticeTarget = null;
+function openNotice(n) {
+  noticeTarget = n;
+  const f = $('formNotice');
+  $('dlgNoticeTitle').textContent = (n ? '공지 수정' : '공지 추가') + ' · ' + (companyById(selectedId)?.name || '');
+  f.repeat.value = n ? n.repeat : '필독'; f.text.value = n ? n.text : '';
+  $('dlgNotice').returnValue = '';
+  $('dlgNotice').showModal();
+}
+$('dlgNotice').addEventListener('close', e => {
+  if (e.target.returnValue !== 'ok') return;
+  const f = $('formNotice');
+  const data = { repeat: f.repeat.value, text: f.text.value.trim() };
+  if (!selectedId || !data.text) return;
+  const target = noticeTarget && (db.notices.find(n => n.id === noticeTarget.id) || noticeTarget);
+  if (target) Object.assign(target, data), touch(target);
+  else db.notices.push(touch({ id: uid(), companyId: selectedId, ...data }));
+  commit();
+});
+
+/* ================= 파일 저장 ================= */
+// Claude 미리보기 안에서는 그 화면의 다운로드 기능으로, 일반 브라우저에서는 바로 내려받기
+async function saveFile(filename, blob) {
+  if (window.claude?.use) {
+    const dl = await window.claude.use('downloads').catch(() => null);
+    if (dl) {
+      try { await dl.save({ filename, data: blob }); }
+      catch (e) { if (e?.code !== 'declined') notify('파일을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.'); }
+      return;
+    }
+    if (CFG.preview) { notify('이 화면에서는 파일을 저장할 수 없습니다.'); return; }
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+/* ================= 엑셀(.xlsx) 만들기 ================= */
+// 외부 프로그램 없이 엑셀 파일(zip 안의 xml 묶음)을 직접 만들어서 인터넷이 없어도 동작
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; }
+  return t;
+})();
+const crc32 = b => { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC_TABLE[(c ^ b[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+function zipStore(files) {
+  const enc = new TextEncoder(), parts = [], central = [];
+  let offset = 0;
+  for (const f of files) {
+    const name = enc.encode(f.name), crc = crc32(f.data), size = f.data.length;
+    const h = new DataView(new ArrayBuffer(30));
+    h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true);
+    h.setUint16(12, 0x21, true); h.setUint32(14, crc, true); h.setUint32(18, size, true); h.setUint32(22, size, true);
+    h.setUint16(26, name.length, true);
+    parts.push(new Uint8Array(h.buffer), name, f.data);
+    const c = new DataView(new ArrayBuffer(46));
+    c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true);
+    c.setUint16(14, 0x21, true); c.setUint32(16, crc, true); c.setUint32(20, size, true); c.setUint32(24, size, true);
+    c.setUint16(28, name.length, true); c.setUint32(42, offset, true);
+    central.push(new Uint8Array(c.buffer), name);
+    offset += 30 + name.length + size;
+  }
+  const cdSize = central.reduce((s, p) => s + p.length, 0);
+  const e = new DataView(new ArrayBuffer(22));
+  e.setUint32(0, 0x06054b50, true); e.setUint16(8, files.length, true); e.setUint16(10, files.length, true);
+  e.setUint32(12, cdSize, true); e.setUint32(16, offset, true);
+  return new Blob([...parts, ...central, new Uint8Array(e.buffer)],
+    { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+const xesc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+  .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
+const colName = i => { let s = ''; i++; while (i) { const m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; };
+const XML = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+const NS = 'http://schemas.openxmlformats.org';
+function sheetXml({ cols, rows }) {
+  const all = [cols.map(c => c[0]), ...rows];
+  const body = all.map((r, ri) => `<row r="${ri + 1}">${r.map((v, ci) => {
+    // 'text' 열(코드·사업자번호·연락처)은 엑셀이 앞자리 0을 지우지 않도록 텍스트 서식
+    const ref = colName(ci) + (ri + 1), st = ri === 0 ? ' s="1"' : cols[ci]?.[2] === 'text' ? ' s="3"' : ' s="2"';
+    return typeof v === 'number' ? `<c r="${ref}"${st}><v>${v}</v></c>`
+      : `<c r="${ref}"${st} t="inlineStr"><is><t xml:space="preserve">${xesc(v)}</t></is></c>`;
+  }).join('')}</row>`).join('');
+  return `${XML}<worksheet xmlns="${NS}/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0">`
+    + `<pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>`
+    + `<cols>${cols.map((c, i) => `<col min="${i + 1}" max="${i + 1}" width="${c[1]}" customWidth="1"${c[2] === 'text' ? ' style="3"' : ''}/>`).join('')}</cols>`
+    + `<sheetData>${body}</sheetData><autoFilter ref="A1:${colName(cols.length - 1)}${all.length}"/></worksheet>`;
+}
+const XLSX_STYLES = `${XML}<styleSheet xmlns="${NS}/spreadsheetml/2006/main">`
+  + `<fonts count="2"><font><sz val="11"/><name val="맑은 고딕"/><family val="2"/></font><font><b/><sz val="11"/><name val="맑은 고딕"/><family val="2"/></font></fonts>`
+  + `<fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>`
+  + `<fill><patternFill patternType="solid"><fgColor rgb="FFEEF3FF"/><bgColor indexed="64"/></patternFill></fill></fills>`
+  + `<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>`
+  + `<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>`
+  + `<cellXfs count="4"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>`
+  + `<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment vertical="center"/></xf>`
+  + `<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>`
+  + `<xf numFmtId="49" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyAlignment="1"><alignment vertical="top"/></xf></cellXfs>`
+  + `<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+function makeXlsx(sheets) {
+  const enc = new TextEncoder(), f = (name, s) => ({ name, data: enc.encode(s) });
+  const filters = sheets.map((s, i) => `<definedName name="_xlnm._FilterDatabase" localSheetId="${i}" hidden="1">`
+    + `'${xesc(s.name)}'!$A$1:$${colName(s.cols.length - 1)}$${s.rows.length + 1}</definedName>`).join('');
+  return zipStore([
+    f('[Content_Types].xml', `${XML}<Types xmlns="${NS}/package/2006/content-types">`
+      + `<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>`
+      + `<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>`
+      + `<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>`
+      + sheets.map((_, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')
+      + `</Types>`),
+    f('_rels/.rels', `${XML}<Relationships xmlns="${NS}/package/2006/relationships">`
+      + `<Relationship Id="rId1" Type="${NS}/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`),
+    f('xl/workbook.xml', `${XML}<workbook xmlns="${NS}/spreadsheetml/2006/main" xmlns:r="${NS}/officeDocument/2006/relationships"><sheets>`
+      + sheets.map((s, i) => `<sheet name="${xesc(s.name)}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join('')
+      + `</sheets><definedNames>${filters}</definedNames></workbook>`),
+    f('xl/_rels/workbook.xml.rels', `${XML}<Relationships xmlns="${NS}/package/2006/relationships">`
+      + sheets.map((_, i) => `<Relationship Id="rId${i + 1}" Type="${NS}/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join('')
+      + `<Relationship Id="rId${sheets.length + 1}" Type="${NS}/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`),
+    f('xl/styles.xml', XLSX_STYLES),
+    ...sheets.map((s, i) => f(`xl/worksheets/sheet${i + 1}.xml`, sheetXml(s))),
+  ]);
+}
+// 시트: 기한업무(마감일순) · 상담기록 전체 · 거래처 목록 · 공지·반복업무
+// 거래처 시트: 올리기(업로드)할 때도 같은 열 이름으로 읽음
+const CO_COLS = [['코드', 8, 'text', 'code'], ['회사명', 24, '', 'name'], ['사업자등록번호', 16, 'text', 'bizNo'],
+                 ['담당자', 12, '', 'manager'], ['연락처', 18, 'text', 'phone'], ['메모', 40, '', 'memo']];
+function companySheet(withStats) {
+  return { name: '거래처',
+    cols: [...CO_COLS, ...(withStats ? [['미완료', 9], ['전체 기록', 10]] : [])],
+    rows: companies().sort(byCode).map(c => [...CO_COLS.map(col => c[col[3]] || ''),
+      ...(withStats ? [logsOf(c.id).filter(l => !l.done).length, logsOf(c.id).length] : [])]) };
+}
+function buildWorkbook() {
+  const co = id => companyById(id) || {};
+  const byCo = (a, b) => byCode(co(a), co(b));
+  const logs = live(db.logs).filter(l => companyById(l.companyId));
+  return [
+    { name: '기한업무',
+      cols: [['기한', 12], ['남은 날', 9], ['코드', 8, 'text'], ['거래처', 22], ['구분', 8], ['제목', 24], ['내용', 60]],
+      rows: logs.filter(l => !l.done && l.due).sort((a, b) => a.due.localeCompare(b.due))
+        .map(l => [l.due, dueInfo(l.due).tag, co(l.companyId).code || '', co(l.companyId).name, l.type, l.title || '', l.content]) },
+    { name: '상담기록',
+      cols: [['코드', 8, 'text'], ['거래처', 22], ['사업자등록번호', 15, 'text'], ['작성일', 12], ['구분', 8], ['제목', 24], ['내용', 60],
+             ['기한', 12], ['수행여부', 10], ['완료일시', 18]],
+      rows: [...logs].sort((a, b) => byCo(a.companyId, b.companyId) || b.date.localeCompare(a.date))
+        .map(l => [co(l.companyId).code || '', co(l.companyId).name, co(l.companyId).bizNo || '', l.date, l.type, l.title || '', l.content,
+                   l.due || '', l.done ? '완료' : '미수행', l.done && l.doneAt ? fmtTime(l.doneAt) : '']) },
+    companySheet(true),
+    { name: '공지·반복업무',
+      cols: [['코드', 8, 'text'], ['거래처', 22], ['주기', 10], ['내용', 60]],
+      rows: live(db.notices).filter(n => companyById(n.companyId)).sort((a, b) => byCo(a.companyId, b.companyId))
+        .map(n => [co(n.companyId).code || '', co(n.companyId).name, n.repeat, n.text]) },
+  ];
+}
+const exportExcel = () => saveFile(`상담관리_${today()}.xlsx`, makeXlsx(buildWorkbook()));
+$('btnExcel').onclick = exportExcel;
+
+/* ================= 거래처 엑셀로 관리 (받기 → 고치기 → 올리기) ================= */
+const GUIDE_ROWS = [
+  ['이 파일의 ‘거래처’ 시트를 고친 뒤, 상담관리 앱의 [엑셀로 관리] → [수정한 엑셀 올리기]로 올리세요.'],
+  ['추가: 맨 아래 빈 줄에 회사명 등을 적습니다. 코드를 비워 두면 자동으로 매겨집니다.'],
+  ['수정: 칸 내용을 고칩니다. 코드를 바꾸면 사업자등록번호나 회사명으로 같은 거래처를 찾아 코드를 바꿉니다.'],
+  ['삭제: 그 거래처의 줄을 통째로 지웁니다(행 삭제). 그 거래처의 상담기록과 공지도 함께 삭제됩니다.'],
+  ['코드는 0001~9999 사이의 숫자 4자리이고, 다른 거래처와 겹치면 안 됩니다.'],
+  ['열 이름(첫 줄)은 바꾸지 마세요. 앱이 열 이름으로 내용을 찾습니다.'],
+];
+$('btnCoExcel').onclick = () => $('dlgExcel').showModal();
+$('btnCoDown').onclick = () => saveFile(`거래처목록_${today()}.xlsx`,
+  makeXlsx([companySheet(false), { name: '작성방법', cols: [['작성 방법', 110]], rows: GUIDE_ROWS }]));
+$('btnCoUp').onclick = () => $('coFile').click();
+$('coFile').onchange = async e => {
+  const file = e.target.files[0]; e.target.value = '';
+  if (!file) return;
+  $('dlgExcel').close();
+  let rows;
+  try { rows = (await readXlsxSheet(file, '거래처')).rows; }
+  catch { notify('엑셀 파일을 읽지 못했습니다.\n엑셀에서 ‘Excel 통합 문서(*.xlsx)’로 저장한 파일인지 확인해 주세요.'); return; }
+  const plan = planCompanyImport(rows);
+  if (plan.error) { notify(plan.error); return; }
+  const { add, upd, del } = plan;
+  if (!add.length && !upd.length && !del.length) { notify('바뀐 내용이 없습니다.'); return; }
+  const list = (arr, f) => arr.slice(0, 8).map(f).join('\n') + (arr.length > 8 ? `\n  …외 ${arr.length - 8}곳` : '');
+  const lostLogs = del.reduce((s, c) => s + logsOf(c.id).length, 0);
+  const msg = [
+    add.length && `추가 ${add.length}곳\n${list(add, r => `  ${r.code} ${r.name}`)}`,
+    upd.length && `수정 ${upd.length}곳\n${list(upd, ([c, ch]) => `  ${ch.code || c.code} ${ch.name || c.name}  (${Object.keys(ch).map(k => CO_COLS.find(x => x[3] === k)[0]).join(', ')})`)}`,
+    del.length && `삭제 ${del.length}곳\n${list(del, c => `  ${c.code} ${c.name}`)}${lostLogs ? `\n  ※ 이 거래처들의 상담기록 ${lostLogs}건도 함께 삭제됩니다.` : ''}`,
+  ].filter(Boolean).join('\n\n');
+  if (!(await ask(`엑셀 내용을 이렇게 적용할까요?\n\n${msg}`, { ok: '적용', danger: del.length > 0 }))) return;
+  for (const r of add) db.companies.push(touch({ id: uid(), ...r }));
+  for (const [c, ch] of upd) { const cur = companyById(c.id) || c; Object.assign(cur, ch); touch(cur); }
+  for (const c of del) { remove(companyById(c.id) || c); noticesOf(c.id).forEach(remove); logsOf(c.id).forEach(remove); }
+  if (del.some(c => c.id === selectedId)) { view = 'dashboard'; selectedId = null; }
+  commit();
+  notify(`적용했습니다. 추가 ${add.length}곳 · 수정 ${upd.length}곳 · 삭제 ${del.length}곳`);
+};
+// 엑셀 행과 지금 거래처를 비교해 추가·수정·삭제 목록을 만듦 (실제 적용은 확인 후)
+function planCompanyImport(rows) {
+  const [head = [], ...body] = rows;
+  const idx = Object.fromEntries(CO_COLS.map(([h, , , k]) => [k, head.findIndex(x => String(x ?? '').trim() === h)]));
+  if (idx.name < 0 || idx.code < 0)
+    return { error: '‘코드’와 ‘회사명’ 열을 찾지 못했습니다.\n앱에서 받은 거래처 엑셀의 첫 줄(열 이름)은 그대로 두고 고쳐 주세요.' };
+  const val = (r, k) => idx[k] < 0 ? null : String(r[idx[k]] ?? '').trim();
+  const items = body.map((r, i) => ({ line: i + 2, raw: val(r, 'code'), code: normCode(val(r, 'code')),
+      name: val(r, 'name'), bizNo: val(r, 'bizNo'), manager: val(r, 'manager'), phone: val(r, 'phone'), memo: val(r, 'memo') }))
+    .filter(r => r.name || r.raw);
+  const bad = items.filter(r => r.code === null || !r.name);
+  if (bad.length) return { error: '엑셀에서 고쳐야 할 줄이 있습니다.\n\n' + bad.slice(0, 8).map(r =>
+    `  ${r.line}번째 줄: ${!r.name ? '회사명이 비어 있습니다' : `코드 ‘${r.raw}’는 0001~9999 숫자가 아닙니다`}`).join('\n') };
+  const seen = new Map();
+  for (const r of items) if (r.code) {
+    if (seen.has(r.code)) return { error: `코드 ${r.code}이(가) ${seen.get(r.code)}번째 줄과 ${r.line}번째 줄에 함께 있습니다.\n코드는 거래처마다 달라야 합니다.` };
+    seen.set(r.code, r.line);
+  }
+  const existing = companies(), kept = new Set(), upd = [], add = [];
+  const diff = (c, r) => {
+    const ch = {};
+    for (const [, , , k] of CO_COLS) {
+      if (r[k] === null || (k === 'code' && !r.code)) continue;
+      const v = k === 'bizNo' ? fmtBizNo(r[k]) : r[k];
+      if ((c[k] || '') !== v) ch[k] = v;
+    }
+    return ch;
+  };
+  const matched = new Map();
+  for (const r of items) {                       // 1차: 코드가 같은 거래처
+    const c = r.code && existing.find(x => x.code === r.code && !kept.has(x.id));
+    if (c) { kept.add(c.id); matched.set(r, c); }
+  }
+  for (const r of items) {                       // 2차: 코드를 바꾼 경우 사업자번호 → 회사명으로 찾기
+    if (matched.has(r)) continue;
+    const bn = fmtBizNo(r.bizNo || '');
+    const c = existing.find(x => !kept.has(x.id) && bn && x.bizNo === bn) || existing.find(x => !kept.has(x.id) && x.name === r.name);
+    if (c) { kept.add(c.id); matched.set(r, c); }
+  }
+  const used = new Set(items.map(r => r.code).filter(Boolean));
+  for (const r of items) {
+    const c = matched.get(r);
+    if (c) { const ch = diff(c, r); if (Object.keys(ch).length) upd.push([c, ch]); continue; }
+    const code = r.code || nextCode(used); used.add(code);
+    add.push({ code, name: r.name, bizNo: fmtBizNo(r.bizNo || ''), manager: r.manager || '', phone: r.phone || '', memo: r.memo || '' });
+  }
+  const del = existing.filter(c => !kept.has(c.id));
+  // 남는 거래처(삭제 예정)와 코드가 겹치는 수정·추가는 없도록 확인
+  const finalCodes = new Map();
+  for (const c of existing) if (kept.has(c.id)) finalCodes.set(c.id, (upd.find(u => u[0] === c)?.[1].code) || c.code);
+  const all = [...finalCodes.values(), ...add.map(a => a.code)];
+  const dupCode = all.find((x, i) => all.indexOf(x) !== i);
+  if (dupCode) return { error: `코드 ${dupCode}이(가) 두 거래처에 겹칩니다. 엑셀의 코드를 확인해 주세요.` };
+  return { add, upd, del };
+}
+
+/* ================= 엑셀(.xlsx) 읽기 ================= */
+// 엑셀이 저장한 압축(zip)을 브라우저 기본 기능(DecompressionStream)으로 풀어서 읽음
+async function readZip(buf) {
+  const u8 = new Uint8Array(buf), dv = new DataView(buf);
+  let eocd = -1;
+  for (let i = u8.length - 22; i >= Math.max(0, u8.length - 65557); i--) if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+  if (eocd < 0) throw new Error('not a zip');
+  const out = new Map(), dec = new TextDecoder();
+  let p = dv.getUint32(eocd + 16, true);
+  for (let n = dv.getUint16(eocd + 10, true); n > 0; n--) {
+    if (dv.getUint32(p, true) !== 0x02014b50) throw new Error('bad zip');
+    const method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true);
+    const nlen = dv.getUint16(p + 28, true), elen = dv.getUint16(p + 30, true), clen = dv.getUint16(p + 32, true), off = dv.getUint32(p + 42, true);
+    const name = dec.decode(u8.subarray(p + 46, p + 46 + nlen));
+    const start = off + 30 + dv.getUint16(off + 26, true) + dv.getUint16(off + 28, true);
+    out.set(name, { method, data: u8.subarray(start, start + csize) });
+    p += 46 + nlen + elen + clen;
+  }
+  return out;
+}
+async function unzipText(entry) {
+  if (!entry) return null;
+  let bytes = entry.data;
+  if (entry.method === 8) bytes = new Uint8Array(await new Response(new Blob([entry.data]).stream()
+    .pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+  else if (entry.method !== 0) throw new Error('unsupported compression');
+  return new TextDecoder().decode(bytes);
+}
+const colIndex = ref => { let n = 0; for (const ch of ref.match(/^[A-Z]+/)[0]) n = n * 26 + ch.charCodeAt(0) - 64; return n - 1; };
+// 셀 글자: 발음 표기(rPh)는 빼고 본문(t, r/t)만
+const cellText = el => [...el.childNodes].map(n => n.nodeName === 't' ? n.textContent
+  : n.nodeName === 'r' ? [...n.childNodes].filter(x => x.nodeName === 't').map(x => x.textContent).join('') : '').join('');
+async function readXlsxSheet(file, preferName) {
+  const zip = await readZip(await file.arrayBuffer());
+  const xml = async name => { const t = await unzipText(zip.get(name)); return t && new DOMParser().parseFromString(t, 'application/xml'); };
+  const sst = [...((await xml('xl/sharedStrings.xml'))?.getElementsByTagName('si') || [])].map(cellText);
+  const wb = await xml('xl/workbook.xml'), rels = await xml('xl/_rels/workbook.xml.rels');
+  const sheets = [...wb.getElementsByTagName('sheet')];
+  const sheet = sheets.find(s => s.getAttribute('name') === preferName) || sheets[0];
+  const rid = sheet.getAttribute('r:id') || sheet.getAttributeNS(`${NS}/officeDocument/2006/relationships`, 'id');
+  const target = [...rels.getElementsByTagName('Relationship')].find(r => r.getAttribute('Id') === rid).getAttribute('Target');
+  const doc = await xml(target.startsWith('/') ? target.slice(1) : 'xl/' + target.replace(/^\.\//, ''));
+  const rows = [];
+  for (const r of doc.getElementsByTagName('row')) {
+    const row = [];
+    for (const c of r.getElementsByTagName('c')) {
+      const t = c.getAttribute('t'), v = c.getElementsByTagName('v')[0]?.textContent ?? '';
+      const ci = c.getAttribute('r') ? colIndex(c.getAttribute('r')) : row.length;
+      row[ci] = t === 's' ? (sst[+v] ?? '') : t === 'inlineStr' ? cellText(c.getElementsByTagName('is')[0]) : v;
+    }
+    rows[(+r.getAttribute('r') || rows.length + 1) - 1] = row;
+  }
+  return { name: sheet.getAttribute('name'), rows: Array.from(rows, r => r || []) };
+}
+
+/* ================= 백업 ================= */
+$('btnExport').onclick = () =>
+  saveFile(`상담관리_백업_${today()}.json`, new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' }));
+$('btnImport').onclick = () => $('importFile').click();
+$('importFile').onchange = async e => {
+  const file = e.target.files[0]; e.target.value = '';
+  if (!file) return;
+  let src;
+  try { src = JSON.parse(await file.text()); if (!Array.isArray(src.companies)) throw 0; }
+  catch { notify('올바른 백업 파일이 아닙니다. 이 앱의 \'백업 저장\'으로 만든 .json 파일을 선택하세요.'); return; }
+  if (!(await ask('현재 데이터를 백업 파일 내용으로 바꿀까요?\n(원드라이브를 쓰는 경우 다른 기기에도 반영됩니다)', { ok: '바꾸기', danger: true }))) return;
+  restoreFrom(normalize(src));
+  view = 'dashboard'; selectedId = null; commit();
+};
+function restoreFrom(src) {
+  const now = Date.now();
+  for (const k of KEYS) {
+    const keep = new Set(src[k].filter(x => !x.deleted).map(x => x.id));
+    const map = new Map(db[k].map(x => [x.id, x]));
+    for (const x of db[k]) if (!x.deleted && !keep.has(x.id)) { x.deleted = true; x.updatedAt = now; }
+    for (const x of src[k]) if (!x.deleted) map.set(x.id, { ...x, updatedAt: now });
+    db[k] = [...map.values()];
+  }
+}
+
+/* ================= 원드라이브 로그인 (Microsoft 계정) ================= */
+const SCOPES = 'offline_access User.Read Files.ReadWrite.AppFolder';
+const AUTH = `https://login.microsoftonline.com/${CFG.tenant || 'common'}/oauth2/v2.0`;
+const cloudEnabled = () => !!CFG.clientId && mode === 'cloud';
+const redirectUri = () => location.origin + location.pathname.replace(/index\.html$/, '');
+const b64url = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+class AuthError extends Error {}
+
+async function login(prompt) {
+  const verifier = b64url(crypto.getRandomValues(new Uint8Array(48)));
+  const challenge = b64url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)));
+  const state = b64url(crypto.getRandomValues(new Uint8Array(16)));
+  lsSet(LS.pkce, { verifier, state });
+  const p = new URLSearchParams({ client_id: CFG.clientId, response_type: 'code', redirect_uri: redirectUri(),
+    response_mode: 'query', scope: SCOPES, state, code_challenge: challenge, code_challenge_method: 'S256' });
+  if (prompt) p.set('prompt', prompt);
+  location.href = `${AUTH}/authorize?${p}`;
+}
+async function logout() {
+  if (!(await ask('원드라이브 연결을 끊을까요?\n(데이터는 원드라이브와 이 기기에 그대로 남습니다)', { ok: '연결 끊기' }))) return;
+  lsDel(LS.token); lsSet(LS.connected, false);
+  setSync('auth');
+}
+async function handleRedirect() {
+  const q = new URLSearchParams(location.search);
+  if (!q.has('code') && !q.has('error')) return;
+  const pk = lsGet(LS.pkce, null); lsDel(LS.pkce);
+  history.replaceState(null, '', redirectUri());
+  if (!q.has('code') || !pk || pk.state !== q.get('state')) return;
+  const r = await fetch(`${AUTH}/token`, { method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ client_id: CFG.clientId, grant_type: 'authorization_code', code: q.get('code'),
+      redirect_uri: redirectUri(), code_verifier: pk.verifier, scope: SCOPES }) }).catch(() => null);
+  if (r && r.ok) { saveToken(await r.json()); lsSet(LS.connected, true); }
+}
+function saveToken(t) {
+  lsSet(LS.token, { access: t.access_token, refresh: t.refresh_token, exp: Date.now() + (t.expires_in - 120) * 1000 });
+}
+let refreshing = null;
+async function getToken() {
+  const t = lsGet(LS.token, null);
+  if (!t) return null;
+  if (t.exp > Date.now()) return t.access;
+  if (!t.refresh) return null;
+  refreshing = refreshing || (async () => {
+    const r = await fetch(`${AUTH}/token`, { method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ client_id: CFG.clientId, grant_type: 'refresh_token', refresh_token: t.refresh, scope: SCOPES }) });
+    if (r.ok) { saveToken(await r.json()); return lsGet(LS.token, {}).access; }
+    if (r.status >= 400 && r.status < 500) lsDel(LS.token);
+    return null;
+  })().finally(() => { refreshing = null; });
+  return refreshing;
+}
+
+/* ================= 원드라이브 동기화 ================= */
+// 데이터는 OneDrive › 앱 › (등록한 앱 이름) › clients.json 에 저장, 매일 backups 폴더에 사본 생성
+const GRAPH = 'https://graph.microsoft.com/v1.0/me/drive/special/approot';
+const FILE = 'clients.json';
+let syncState = { status: mode === 'local' ? 'local' : 'syncing', at: null, msg: '' };
+let syncing = false, syncAgain = false, syncTimer = null;
+
+function setSync(status, msg = '') {
+  const hadBanner = ['auth', 'folder-perm'].includes(syncState.status);
+  syncState = { status, msg, at: status === 'ok' ? Date.now() : syncState.at };
+  renderSync();
+  if (hadBanner || ['auth', 'folder-perm'].includes(status)) renderMain();
+}
+function renderSync() {
+  const el = $('syncStatus'), s = syncState;
+  const time = s.at ? new Date(s.at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) : '';
+  const where = FB_ON ? 'Firebase' : mode === 'folder' ? `내 컴퓨터 폴더${dirHandle?.name ? ` '${dirHandle.name}'` : ''}` : '원드라이브';
+  const txt = {
+    local: CFG.preview ? '미리보기 · 이 기기에만 저장됩니다 (PC·휴대폰 공유 안 됨)' : '이 기기(브라우저)에만 저장 중 · 자동 백업 없음',
+    syncing: `${where}에 ${FB_ON ? '연결' : '저장'} 중…`,
+    ok: FB_ON ? `Firebase에 실시간 저장 · 모두에게 공유됨` : `${where}에 실시간 저장됨 · ${time}`,
+    offline: '오프라인 · 이 기기에 보관 중 (연결되면 자동 저장)',
+    auth: '원드라이브 로그인 필요 · 이 기기에 임시 저장 중',
+    'folder-perm': '폴더 저장 허용 필요 · 이 기기에 임시 저장 중',
+    error: `저장 실패${s.msg ? ' (' + s.msg + ')' : ''} · 이 기기에 임시 저장됨`,
+  }[s.status];
+  const fbFolder = FB_ON && lsGet('cm2-fbfolder', false)
+    ? `<br>PC 폴더 백업: ${fbFolderState === 'perm' ? '허용 필요 (저장 위치에서 다시 적용)' : fbFolderState === 'error' ? '실패' : '켜짐'}` : '';
+  el.innerHTML = `<span class="dot"></span><span>${esc(txt)}${mode === 'folder'
+    ? '<br>컴퓨터가 켜져 있고 앱이 열려 있을 때만 저장됩니다' : ''}${fbFolder}</span>`;
+  el.className = 'sync ' + (s.status === 'ok' ? 'ok' : ['auth', 'error', 'folder-perm', 'offline'].includes(s.status) ? 'warn' : '');
+  const btn = $('btnCloud');
+  btn.hidden = !cloudEnabled();
+  btn.textContent = s.status === 'auth' ? '원드라이브 로그인' : '연결 끊기';
+}
+$('btnCloud').onclick = () => syncState.status === 'auth' ? login() : logout();
+
+async function graph(path, opts = {}) {
+  const tok = await getToken();
+  if (!tok) throw new AuthError();
+  const r = await fetch(GRAPH + path, { ...opts, headers: { ...(opts.headers || {}), Authorization: 'Bearer ' + tok } });
+  if (r.status === 401) { lsDel(LS.token); throw new AuthError(); }
+  return r;
+}
+async function pull() {
+  const r = await graph(`:/${FILE}`);
+  if (r.status === 404) return { data: null, etag: null };
+  if (!r.ok) throw new Error('읽기 ' + r.status);
+  const meta = await r.json();
+  const c = await fetch(meta['@microsoft.graph.downloadUrl'], { cache: 'no-store' });
+  if (!c.ok) throw new Error('읽기 ' + c.status);
+  return { data: normalize(await c.json()), etag: meta.eTag };
+}
+async function push(data, etag) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (etag) headers['If-Match'] = etag;
+  const q = etag ? '' : '?@microsoft.graph.conflictBehavior=fail';
+  const r = await graph(`:/${FILE}:/content${q}`, { method: 'PUT', headers, body: JSON.stringify(data) });
+  if (r.status === 412 || r.status === 409) return null;  // 다른 기기가 먼저 저장함 → 다시 합치기
+  if (!r.ok) throw new Error('저장 ' + r.status);
+  return (await r.json()).eTag;
+}
+async function dailyBackup(data) {
+  const d = today();
+  if (lsGet(LS.backup, '') === d) return;
+  const r = await graph(`:/backups/clients_${d}.json:/content`, { method: 'PUT',
+    headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+  if (r.ok) lsSet(LS.backup, d);
+}
+function scheduleSync(delay = 800) {
+  if (!cloudEnabled()) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(sync, delay);
+}
+async function sync() {
+  if (!cloudEnabled()) return;
+  if (syncing) { syncAgain = true; return; }
+  syncing = true;
+  if (syncState.status !== 'ok') setSync('syncing');
+  try {
+    for (let i = 0; i < 4; i++) {
+      const remote = await pull();
+      const merged = remote.data ? mergeDb(db, remote.data) : mergeDb(db, emptyDb());
+      const needPush = !remote.data || lsGet(LS.dirty, false) || sig(merged) !== sig(remote.data);
+      if (needPush && (await push(merged, remote.etag)) === null) continue;
+      const before = sig(db);
+      db = mergeDb(db, merged);
+      lsSet(LS.data, db);
+      if (sig(db) === sig(merged)) lsSet(LS.dirty, false); else syncAgain = true;
+      if (sig(db) !== before) render();
+      await dailyBackup(merged).catch(() => {});
+      setSync('ok');
+      break;
+    }
+  } catch (e) {
+    if (e instanceof AuthError) setSync('auth');
+    else setSync('error', navigator.onLine ? e.message : '오프라인');
+  } finally {
+    syncing = false;
+    if (syncAgain) { syncAgain = false; scheduleSync(300); }
+  }
+}
+setInterval(() => { if (document.visibilityState === 'visible') sync(); }, 30000);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') sync(); });
+addEventListener('online', () => sync());
+
+/* ================= 내 컴퓨터 폴더 저장 ================= */
+// 선택한 폴더에 clients.json(현재 데이터)과 backups/clients_날짜.json(날짜별 백업)을 변경 즉시 저장
+let dirHandle = null, folderTimer = null;
+function idb() {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open('cm2', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('kv');
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  });
+}
+async function idbGet(k) {
+  const d = await idb();
+  return new Promise((res, rej) => { const r = d.transaction('kv').objectStore('kv').get(k); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+}
+async function idbSet(k, v) {
+  const d = await idb();
+  return new Promise((res, rej) => { const t = d.transaction('kv', 'readwrite'); t.objectStore('kv').put(v, k); t.oncomplete = () => res(); t.onerror = () => rej(t.error); });
+}
+async function folderReady(ask) {
+  if (!dirHandle) dirHandle = await idbGet('dir').catch(() => null);
+  if (!dirHandle) return false;
+  const opts = { mode: 'readwrite' };
+  if (await dirHandle.queryPermission(opts) === 'granted') return true;
+  return ask && await dirHandle.requestPermission(opts) === 'granted';
+}
+async function pickFolder() {
+  try {
+    dirHandle = await showDirectoryPicker({ id: 'cm-folder', mode: 'readwrite' });
+    await idbSet('dir', dirHandle);
+    return true;
+  } catch { return false; }
+}
+async function writeFile(dir, name, text) {
+  const w = await (await dir.getFileHandle(name, { create: true })).createWritable();
+  await w.write(text); await w.close();
+}
+function scheduleFolderSave() {
+  if (mode !== 'folder' && !(FB_ON && me && canAdmin() && lsGet('cm2-fbfolder', false))) return;
+  clearTimeout(folderTimer);
+  folderTimer = setTimeout(folderSave, FB_ON ? 3000 : 500);
+}
+async function folderSave() {
+  try {
+    if (!(await folderReady(false))) {
+      if (FB_ON) { fbFolderState = 'perm'; renderSync(); } else setSync('folder-perm');
+      return;
+    }
+    const text = JSON.stringify(db, null, 2);
+    await writeFile(dirHandle, 'clients.json', text);
+    await writeFile(await dirHandle.getDirectoryHandle('backups', { create: true }), `clients_${today()}.json`, text);
+    if (FB_ON) { fbFolderState = 'ok'; renderSync(); return; }  // Firebase 모드에서는 백업만
+    lsSet(LS.dirty, false);
+    setSync('ok');
+  } catch (e) {
+    if (FB_ON) { fbFolderState = 'error'; renderSync(); } else setSync('error', e.message || '폴더 저장 실패');
+  }
+}
+// 폴더에 이미 저장된 데이터가 있으면 합친 뒤 저장
+async function folderLoad() {
+  try {
+    const file = await (await dirHandle.getFileHandle('clients.json')).getFile();
+    const before = sig(db);
+    db = mergeDb(db, normalize(JSON.parse(await file.text())));
+    lsSet(LS.data, db);
+    if (sig(db) !== before) render();
+  } catch (e) { if (e.name !== 'NotFoundError') { setSync('error', '폴더 파일 읽기 실패'); return; } }
+  await folderSave();
+}
+
+/* ================= 저장 위치 설정 ================= */
+function openSettings() {
+  const f = $('formSettings');
+  const onFile = location.protocol === 'file:';
+  const cloudOk = !!CFG.clientId && !onFile && !CFG.preview;
+  const folderOk = folderSupported && !CFG.preview;
+  f.mode.forEach(r => { r.disabled = (r.value === 'cloud' && !cloudOk) || (r.value === 'folder' && !folderOk); });
+  $('optCloud').classList.toggle('disabled', !cloudOk);
+  $('optFolder').classList.toggle('disabled', !folderOk);
+  const previewNote = '미리보기에서는 선택할 수 없습니다. 실제 앱(설치안내 참고)에서 사용할 수 있습니다.';
+  $('cloudNote').textContent = cloudOk ? '' : CFG.preview ? previewNote : onFile
+    ? '지금은 컴퓨터에 있는 파일로 열었기 때문에 선택할 수 없습니다. 설치안내 1~3단계대로 인터넷 주소에 올린 앱에서 사용할 수 있습니다.'
+    : '원드라이브 연결 설정(설치안내 2~3단계)을 마친 뒤 선택할 수 있습니다.';
+  $('folderNote').textContent = CFG.preview ? previewNote : !folderSupported ? '이 기기·브라우저에서는 사용할 수 없습니다.'
+    : dirHandle ? `선택된 폴더: ${dirHandle.name}` : '';
+  $('btnPickFolder').hidden = !folderOk;
+  $('btnPickFolder').textContent = dirHandle ? '폴더 변경' : '폴더 선택';
+  f.mode.value = mode;
+  if (!$('dlgSettings').open) $('dlgSettings').showModal();
+}
+$('btnSettings').onclick = async () => {
+  if (!dirHandle) dirHandle = await idbGet('dir').catch(() => null);
+  FB_ON ? openFbBackup() : openSettings();
+};
+// Firebase 모드: 저장은 Firebase가 하고, 여기서는 PC 폴더 추가 백업만 켜고 끔
+function openFbBackup() {
+  $('fbFolderOn').checked = lsGet('cm2-fbfolder', false);
+  $('fbFolderOn').disabled = !folderSupported;
+  $('btnFbPick').hidden = !folderSupported;
+  $('btnFbPick').textContent = dirHandle ? '폴더 변경' : '폴더 선택';
+  $('fbFolderNote').textContent = !folderSupported ? '이 기기·브라우저에서는 쓸 수 없습니다. PC의 크롬·엣지에서 설정하세요.'
+    : dirHandle ? `선택된 폴더: ${dirHandle.name}` : '';
+  $('dlgFbBackup').showModal();
+}
+$('btnFbPick').onclick = async () => {
+  if (!(await pickFolder())) return;
+  $('fbFolderNote').textContent = `선택된 폴더: ${dirHandle.name}`;
+  $('btnFbPick').textContent = '폴더 변경';
+  $('fbFolderOn').checked = true;
+};
+$('formFbBackup').addEventListener('submit', async e => {
+  e.preventDefault();
+  const on = $('fbFolderOn').checked;
+  if (on && !(dirHandle && await folderReady(true)) && !(await pickFolder())) return;
+  lsSet('cm2-fbfolder', on);
+  $('dlgFbBackup').close();
+  fbFolderState = '';
+  if (on) folderSave(); else renderSync();
+});
+$('btnPickFolder').onclick = async e => {
+  e.preventDefault();
+  if (!(await pickFolder())) return;
+  $('folderNote').textContent = `선택된 폴더: ${dirHandle.name}`;
+  $('btnPickFolder').textContent = '폴더 변경';
+  $('formSettings').mode.value = 'folder';
+};
+$('formSettings').addEventListener('submit', async e => {
+  e.preventDefault();
+  const next = $('formSettings').mode.value;
+  if (next === 'folder' && !(dirHandle && await folderReady(true)) && !(await pickFolder())) return;
+  $('dlgSettings').close();
+  if (next === mode && next !== 'folder') return;
+  mode = next; lsSet('cm2-mode', mode);
+  if (mode === 'cloud') {
+    if (!(await getToken().catch(() => null))) { login(); return; }
+    setSync('syncing'); sync();
+  } else if (mode === 'folder') {
+    setSync('syncing'); await folderLoad();
+  } else setSync('local');
+  render();
+});
+
+/* ================= Firebase: 로그인 · 직원 · 실시간 공유 ================= */
+// 저장 구조: workspaces/{회사}/clients(거래처) · notices(공지) · logs(기록) · members(직원)
+const FB_VER = '10.12.2';
+const COL = { companies: 'clients', notices: 'notices', logs: 'logs' };
+const WS = CFG.workspaceId || 'main';
+const idToEmail = id => `${String(id).trim().toLowerCase()}@sangdam.app`;  // 아이디를 Firebase 로그인용 주소로 바꿈
+const validId = id => /^[a-z0-9._-]{3,30}$/.test(id);
+let me = null, fbx = null, members = [], fbUnsubs = [], fbSettingUp = false, fbFolderState = '';
+const fbSynced = new Map();   // 'logs/아이디' → Firebase에 저장된 updatedAt
+let fbPrevLogs = new Map();   // 마지막으로 받은 기록 (완료로 바뀌었는지 비교용)
+function canAdmin() { return !FB_ON || me?.role === 'admin'; }
+function canDelLog(l) { return canAdmin() || (!!me && l.authorUid === me.uid); }
+const ROLE_NAME = { admin: '관리자', staff: '직원', disabled: '사용 중지' };
+const authMsg = e => ({
+  'auth/invalid-credential': '아이디 또는 비밀번호가 맞지 않습니다.',
+  'auth/invalid-login-credentials': '아이디 또는 비밀번호가 맞지 않습니다.',
+  'auth/wrong-password': '아이디 또는 비밀번호가 맞지 않습니다.',
+  'auth/user-not-found': '아이디 또는 비밀번호가 맞지 않습니다.',
+  'auth/invalid-email': '아이디는 영문 소문자·숫자·. - _ 로 3~30자입니다.',
+  'auth/too-many-requests': '여러 번 틀려서 잠시 막혔습니다. 몇 분 뒤 다시 시도해 주세요.',
+  'auth/email-already-in-use': '이미 있는 아이디입니다. 다른 아이디를 쓰세요.',
+  'auth/weak-password': '비밀번호는 6자 이상이어야 합니다.',
+  'auth/network-request-failed': '인터넷 연결을 확인해 주세요.',
+  'auth/operation-not-allowed': 'Firebase에서 ‘이메일/비밀번호’ 로그인이 켜져 있지 않습니다. 설치 안내 2단계를 확인해 주세요.',
+  'auth/api-key-not-valid.-please-pass-a-valid-api-key.': 'config.js의 Firebase 설정값(apiKey)이 올바르지 않습니다.',
+  'auth/configuration-not-found': 'Firebase에서 로그인(Authentication)이 아직 시작되지 않았습니다. 설치 안내 2단계를 확인해 주세요.',
+  'permission-denied': '권한이 없습니다. (보안 규칙이 설치 안내 4단계대로 들어가 있는지 확인해 주세요)',
+  'unavailable': '서버에 연결할 수 없습니다. 인터넷 연결을 확인해 주세요.',
+}[e?.code] || `문제가 생겼습니다 (${e?.code || e?.message || e})`);
+
+async function fbLoad() {
+  const base = `https://www.gstatic.com/firebasejs/${FB_VER}/`;
+  const [appM, A, F] = await Promise.all(['firebase-app.js', 'firebase-auth.js', 'firebase-firestore.js'].map(f => import(base + f)));
+  const app = appM.initializeApp(CFG.firebase);
+  let fs;
+  try { fs = F.initializeFirestore(app, { localCache: F.persistentLocalCache({ tabManager: F.persistentMultipleTabManager() }) }); }
+  catch { fs = F.getFirestore(app); }   // 오프라인 보관을 못 쓰는 브라우저
+  fbx = { appM, A, F, app, fs, auth: A.getAuth(app) };
+}
+const wsDoc = (...path) => fbx.F.doc(fbx.fs, 'workspaces', WS, ...path);
+const wsCol = name => fbx.F.collection(fbx.fs, 'workspaces', WS, name);
+
+/* ---- 로그인 화면 ---- */
+function showAuth(state, msg = '') {
+  const el = $('authScreen');
+  el.hidden = false;
+  if (state === 'loading') {
+    el.innerHTML = `<div class="auth-card"><div class="auth-brand">상담관리</div><p class="muted">불러오는 중…</p></div>`;
+    return;
+  }
+  if (state === 'denied') {
+    el.innerHTML = `<div class="auth-card"><div class="auth-brand">상담관리</div><h2>들어갈 수 없습니다</h2>
+      <p class="auth-err">${esc(msg)}</p>
+      <button class="btn primary auth-submit" id="authRetry">다시 시도</button>
+      ${fbx?.auth?.currentUser ? `<button class="btn ghost" id="authOut">다른 아이디로 로그인</button>` : ''}</div>`;
+    $('authRetry').onclick = () => location.reload();
+    if ($('authOut')) $('authOut').onclick = () => fbx.A.signOut(fbx.auth);
+    return;
+  }
+  const setup = state === 'setup';
+  el.innerHTML = `<form class="auth-card" id="authForm" novalidate>
+    <div class="auth-brand">상담관리</div>
+    <h2>${setup ? '처음 설정 · 관리자 계정 만들기' : '로그인'}</h2>
+    ${setup ? `<p class="muted" style="font-size:14px">맨 처음 한 번만 합니다. 여기서 만든 계정이 관리자가 되고, 직원 계정은 로그인 후 ‘직원 관리’에서 만듭니다.</p>
+      <label class="field"><span>회사 이름</span><input name="org" id="aOrg" placeholder="예) 한빛무역"></label>
+      <label class="field"><span>관리자 이름</span><input name="name" id="aName" placeholder="예) 홍길동"></label>` : ''}
+    <label class="field"><span>아이디</span><input name="id" id="aId" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="영문 소문자·숫자 3자 이상"></label>
+    <label class="field"><span>비밀번호</span><input name="pw" id="aPw" type="password" autocomplete="${setup ? 'new-password' : 'current-password'}" placeholder="6자 이상"></label>
+    ${setup ? `<label class="field"><span>비밀번호 확인</span><input name="pw2" id="aPw2" type="password" autocomplete="new-password"></label>` : ''}
+    <p class="auth-err" id="authErr">${esc(msg)}</p>
+    <button class="btn primary auth-submit" type="submit">${setup ? '관리자 계정 만들고 시작하기' : '로그인'}</button>
+    <button class="btn ghost" type="button" id="authSwitch">${setup ? '이미 계정이 있어요 · 로그인' : '처음 설치했나요? 관리자 계정 만들기'}</button>
+  </form>`;
+  $('authSwitch').onclick = () => showAuth(setup ? 'login' : 'setup');
+  $('authForm').onsubmit = e => { e.preventDefault(); setup ? fbSetup(e.target) : fbLogin(e.target); };
+}
+function hideAuth() { $('authScreen').hidden = true; $('authScreen').innerHTML = ''; }
+
+async function fbLogin(f) {
+  const id = f.id.value.trim().toLowerCase(), err = $('authErr'), btn = f.querySelector('.auth-submit');
+  err.textContent = '';
+  if (!id || !f.pw.value) { err.textContent = '아이디와 비밀번호를 입력하세요.'; return; }
+  btn.disabled = true;
+  try { await fbx.A.signInWithEmailAndPassword(fbx.auth, idToEmail(id), f.pw.value); }
+  catch (e) { err.textContent = authMsg(e); btn.disabled = false; }
+}
+// 맨 처음 관리자: 계정 만들기 → 회사(workspace) 만들기 → 자신을 관리자로 등록
+async function fbSetup(f) {
+  const v = k => f[k].value.trim(), id = v('id').toLowerCase(), err = $('authErr'), btn = f.querySelector('.auth-submit');
+  const fail = m => { err.textContent = m; btn.disabled = false; fbSettingUp = false; };
+  if (!v('org') || !v('name')) return fail('회사 이름과 관리자 이름을 입력하세요.');
+  if (!validId(id)) return fail('아이디는 영문 소문자·숫자·. - _ 로 3~30자입니다.');
+  if (f.pw.value.length < 6) return fail('비밀번호는 6자 이상이어야 합니다.');
+  if (f.pw.value !== f.pw2.value) return fail('비밀번호 확인이 맞지 않습니다.');
+  btn.disabled = true; fbSettingUp = true; err.textContent = '';
+  let cred;
+  try { cred = await fbx.A.createUserWithEmailAndPassword(fbx.auth, idToEmail(id), f.pw.value); }
+  catch (e) { return fail(authMsg(e)); }
+  try {
+    await fbx.F.setDoc(wsDoc(), { name: v('org'), ownerUid: cred.user.uid, createdAt: Date.now() });
+    await fbx.F.setDoc(wsDoc('members', cred.user.uid), { loginId: id, name: v('name'), role: 'admin', createdAt: Date.now() });
+  } catch (e) {
+    await cred.user.delete().catch(() => {});
+    return fail(e?.code === 'permission-denied'
+      ? '이미 관리자 설정이 끝난 앱입니다. 관리자에게 아이디를 받아 로그인하세요.' : authMsg(e));
+  }
+  fbSettingUp = false;
+  fbOnUser(cred.user);
+}
+
+/* ---- 로그인 상태가 바뀔 때 ---- */
+function fbStop() { fbUnsubs.forEach(u => u()); fbUnsubs = []; }
+async function fbOnUser(user) {
+  if (fbSettingUp) return;   // 처음 설정 중에는 끝난 뒤 직접 호출
+  fbStop();
+  if (!user) { me = null; members = []; db = emptyDb(); fbSynced.clear(); view = 'dashboard'; selectedId = null; showAuth('login'); return; }
+  showAuth('loading');
+  let m;
+  try { const snap = await fbx.F.getDoc(wsDoc('members', user.uid)); m = snap.exists() ? snap.data() : null; }
+  catch (e) { showAuth('denied', authMsg(e)); return; }
+  if (!m || !['admin', 'staff'].includes(m.role)) {
+    showAuth('denied', m ? '사용이 중지된 계정입니다. 관리자에게 문의하세요.' : '이 앱에 등록되지 않은 계정입니다. 관리자에게 문의하세요.');
+    return;
+  }
+  me = { uid: user.uid, ...m, org: '' };
+  try { me.org = (await fbx.F.getDoc(wsDoc())).data()?.name || ''; } catch {}
+  db = emptyDb(); fbSynced.clear();
+  setSync('syncing');
+  hideAuth();
+  for (const key of KEYS) fbUnsubs.push(fbx.F.onSnapshot(wsCol(COL[key]), { includeMetadataChanges: true },
+    snap => fbOnSnap(key, snap), e => setSync('error', authMsg(e))));
+  fbUnsubs.push(fbx.F.onSnapshot(wsCol('members'), snap => {
+    members = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+    const mine = members.find(x => x.uid === me.uid);
+    if (mine && !['admin', 'staff'].includes(mine.role)) { fbx.A.signOut(fbx.auth); return; }   // 사용 중지되면 바로 로그아웃
+    if (mine && mine.role !== me.role) { me.role = mine.role; if (!canAdmin() && view === 'staff') view = 'dashboard'; render(); return; }
+    if (view === 'staff') renderMain();
+  }, () => {}));
+  render();
+}
+// 다른 사람(또는 다른 기기)이 바꾼 내용이 실시간으로 들어옴
+function fbOnSnap(key, snap) {
+  db[key] = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+  if (key === 'logs') fbPrevLogs = new Map(snap.docs.map(d => [d.id, d.data()]));
+  for (const d of snap.docs) fbSynced.set(`${key}/${d.id}`, d.data().updatedAt || 0);
+  setSync(snap.metadata.fromCache ? 'offline' : 'ok');
+  scheduleFolderSave();
+  renderList();
+  if (view !== 'staff') renderMain();   // 직원 관리 화면은 거래처 데이터와 무관 (입력 중인 내용 유지)
+}
+// 이 기기에서 바꾼 내용만 골라서 Firebase에 저장 (추가·수정은 set, 삭제는 delete)
+const plain = o => JSON.parse(JSON.stringify(o));
+async function fbFlush() {
+  if (!fbx || !me) return;
+  const ops = [];
+  for (const key of KEYS) for (const x of db[key]) {
+    const k = `${key}/${x.id}`, saved = fbSynced.get(k);
+    if (x.deleted) { if (saved !== undefined) ops.push(['del', key, x]); }
+    else if (saved === undefined || (x.updatedAt || 0) > saved) ops.push(['set', key, x]);
+  }
+  // 매일 메일 보고용 작업 기록: 기록이 추가·완료·삭제될 때 한 줄씩 남김
+  const coById = new Map(db.companies.map(c => [c.id, c]));
+  const acts = [];
+  for (const [t, key, x] of ops) {
+    if (key !== 'logs') continue;
+    const prev = fbPrevLogs.get(x.id);
+    const kind = t === 'del' ? 'deleted' : !prev ? 'added' : (!prev.done && x.done) ? 'done' : null;
+    if (!kind) continue;
+    const c = coById.get(x.companyId) || {};
+    acts.push({ kind, day: today(), at: Date.now(), byUid: me.uid, byName: me.name || '',
+      companyCode: c.code || '', companyName: c.name || '', logId: x.id, type: x.type || '', title: x.title || '',
+      content: String(x.content || '').slice(0, 500), date: x.date || '', due: x.due || '', authorName: x.authorName || '' });
+  }
+  if (acts.length > 30) {   // 엑셀·백업 불러오기처럼 한꺼번에 바뀐 경우는 한 줄로 요약
+    const n = k => acts.filter(a => a.kind === k).length;
+    acts.splice(0, acts.length, { kind: 'bulk', day: today(), at: Date.now(), byUid: me.uid, byName: me.name || '',
+      title: `일괄 변경: 추가 ${n('added')} · 완료 ${n('done')} · 삭제 ${n('deleted')}`, companyCode: '', companyName: '', content: '' });
+  }
+  for (const a of acts) ops.push(['act', 'activity', a]);
+  for (const key of KEYS) db[key] = db[key].filter(x => !x.deleted);
+  if (!ops.length) return;
+  for (const [t, key, x] of ops) if (t !== 'act') t === 'del' ? fbSynced.delete(`${key}/${x.id}`) : fbSynced.set(`${key}/${x.id}`, x.updatedAt || 0);
+  try {
+    for (let i = 0; i < ops.length; i += 400) {   // 한 번에 최대 500건까지 보낼 수 있어서 나눠 보냄
+      const batch = fbx.F.writeBatch(fbx.fs);
+      for (const [t, key, x] of ops.slice(i, i + 400)) {
+        if (t === 'act') { batch.set(fbx.F.doc(wsCol('activity')), x); continue; }
+        const ref = fbx.F.doc(fbx.fs, 'workspaces', WS, COL[key], x.id);
+        if (t === 'del') batch.delete(ref);
+        else { const { deleted, ...data } = x; batch.set(ref, plain(data)); }
+      }
+      await batch.commit();
+    }
+  } catch (e) {
+    notify(e?.code === 'permission-denied' ? '이 작업은 관리자만 할 수 있습니다. 바뀐 내용은 저장되지 않았습니다.' : '저장하지 못했습니다. ' + authMsg(e));
+  }
+}
+
+/* ---- 직원 관리 (관리자) ---- */
+function renderStaff() {
+  const rows = [...members].sort((a, b) => (a.role === 'disabled') - (b.role === 'disabled')
+    || (a.role === 'admin' ? 0 : 1) - (b.role === 'admin' ? 0 : 1) || (a.name || '').localeCompare(b.name || '', 'ko'));
+  return `
+    <div class="page-head"><div>
+      <div class="eyebrow">${esc(me.org || '')}</div>
+      <h1 class="page-title">직원 관리</h1>
+      <div class="page-sub">직원 계정을 만들고 권한을 정합니다. 직원은 받은 아이디·비밀번호로 PC와 휴대폰에서 로그인합니다.</div>
+    </div></div>
+    <section class="panel">
+      <div class="panel-head"><h2>${ic('plus')}직원 추가</h2></div>
+      <form id="formStaff" class="panel-body staff-form" novalidate>
+        <label class="field"><span>이름</span><input name="name" id="sName" placeholder="예) 김민준"></label>
+        <label class="field"><span>아이디</span><input name="loginId" id="sId" autocapitalize="off" spellcheck="false" placeholder="영문 소문자·숫자"></label>
+        <label class="field"><span>처음 비밀번호</span><input name="pw" id="sPw" placeholder="6자 이상"></label>
+        <label class="field"><span>권한</span><select name="role" id="sRole"><option value="staff">직원</option><option value="admin">관리자</option></select></label>
+        <button class="btn primary" type="submit">${ic('plus')}추가</button>
+        <p class="staff-msg" id="staffMsg"></p>
+      </form>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><h2>${ic('user')}계정 ${members.length}개</h2></div>
+      <div class="staff-list">${rows.map(m => `
+        <div class="staff-row ${m.role === 'disabled' ? 'off' : ''}">
+          <div class="staff-name"><b>${esc(m.name || '')}</b>${m.uid === me.uid ? ' <span class="muted">(나)</span>' : ''}
+            <div class="muted">아이디 ${esc(m.loginId || '')}</div></div>
+          <span class="role r-${esc(m.role)}">${ROLE_NAME[m.role] || esc(m.role)}</span>
+          <div class="staff-acts">${m.uid === me.uid ? '' : m.role === 'disabled'
+            ? `<button class="btn sm" data-act="member-role" data-id="${m.uid}" data-role="staff">다시 사용</button>`
+            : `<button class="btn sm ghost" data-act="member-role" data-id="${m.uid}" data-role="${m.role === 'admin' ? 'staff' : 'admin'}">${m.role === 'admin' ? '직원으로 바꾸기' : '관리자로 바꾸기'}</button>
+               <button class="btn sm ghost danger-text" data-act="member-role" data-id="${m.uid}" data-role="disabled">사용 중지</button>`}</div>
+        </div>`).join('')}</div>
+    </section>
+    <section class="panel"><div class="panel-body staff-help">
+      <b>권한</b>
+      <p>직원: 모든 거래처·기록 보기, 기록 작성·수정·완료 체크, 본인이 쓴 기록 삭제<br>
+         관리자: 위의 모든 것 + 거래처 추가·수정·삭제, 공지, 엑셀로 관리, 불러오기, 직원 관리</p>
+      <br><b>비밀번호를 잊어버린 직원</b>
+      <p>보안상 관리자도 다른 사람의 비밀번호를 보거나 바꿀 수 없습니다. 기존 계정을 ‘사용 중지’하고 새 아이디로 다시 만들어 주세요.
+         본인은 왼쪽 아래 이름을 눌러 비밀번호를 바꿀 수 있습니다.</p>
+    </div></section>`;
+}
+function bindStaffForm() {
+  const f = $('formStaff');
+  f.addEventListener('submit', async e => {
+    e.preventDefault();
+    const msg = $('staffMsg'), btn = f.querySelector('[type=submit]');
+    const name = f.name.value.trim(), loginId = f.loginId.value.trim().toLowerCase(), pw = f.pw.value, role = f.role.value;
+    const say = (t, ok) => { msg.textContent = t; msg.className = 'staff-msg ' + (ok ? 'ok' : 'err'); };
+    if (!name) return say('이름을 입력하세요.');
+    if (!validId(loginId)) return say('아이디는 영문 소문자·숫자·. - _ 로 3~30자입니다.');
+    if (pw.length < 6) return say('처음 비밀번호는 6자 이상이어야 합니다.');
+    btn.disabled = true; say('만드는 중…', true);
+    try {
+      await fbCreateMember(loginId, name, pw, role);
+      f.reset();
+      say(`‘${name}’ 계정을 만들었습니다. 아이디 ${loginId} / 처음 비밀번호를 직원에게 알려 주세요.`, true);
+    } catch (err) { say(authMsg(err)); }
+    btn.disabled = false;
+  });
+}
+// 관리자 로그인을 유지한 채 직원 계정을 만들려고 보조 연결을 잠깐 씀
+async function fbCreateMember(loginId, name, pw, role) {
+  const sec = fbx.appM.initializeApp(CFG.firebase, 'add-' + Date.now());
+  try {
+    const sAuth = fbx.A.getAuth(sec);
+    const cred = await fbx.A.createUserWithEmailAndPassword(sAuth, idToEmail(loginId), pw);
+    await fbx.F.setDoc(wsDoc('members', cred.user.uid), { loginId, name, role, createdAt: Date.now(), createdBy: me.uid });
+    await fbx.A.signOut(sAuth);
+  } finally { fbx.appM.deleteApp(sec).catch(() => {}); }
+}
+$('main').addEventListener('click', async e => {
+  const btn = e.target.closest('[data-act="member-role"]');
+  if (!btn || !FB_ON || !canAdmin()) return;
+  const m = members.find(x => x.uid === btn.dataset.id), role = btn.dataset.role;
+  if (!m) return;
+  const q = role === 'disabled' ? `‘${m.name}’ 계정을 사용 중지할까요?\n바로 로그아웃되고 다시 로그인할 수 없습니다. (작성한 기록은 그대로 남습니다)`
+          : role === 'admin' ? `‘${m.name}’을(를) 관리자로 바꿀까요?\n관리자는 거래처 삭제와 직원 관리까지 할 수 있습니다.`
+          : `‘${m.name}’을(를) ${m.role === 'disabled' ? '다시 사용하도록' : '직원으로'} 바꿀까요?`;
+  if (!(await ask(q, { ok: '바꾸기', danger: role === 'disabled' }))) return;
+  try { await fbx.F.updateDoc(wsDoc('members', m.uid), { role }); }
+  catch (err) { notify(authMsg(err)); }
+});
+$('btnStaff').onclick = () => {
+  view = 'staff'; selectedId = null; editingLogId = null;
+  document.body.classList.add('show-detail'); render(); window.scrollTo(0, 0);
+};
+
+/* ---- 내 계정 ---- */
+$('meBox').onclick = () => {
+  if (!me) return;
+  $('meInfo').innerHTML = `<b>${esc(me.name)}</b> · ${ROLE_NAME[me.role]}<br>아이디 ${esc(me.loginId || '')}${me.org ? `<br>회사 ${esc(me.org)}` : ''}`;
+  $('formMe').reset(); $('meErr').textContent = '';
+  $('dlgMe').showModal();
+};
+$('btnLogout').onclick = async () => { $('dlgMe').close(); await fbx.A.signOut(fbx.auth); };
+$('formMe').addEventListener('submit', async e => {
+  e.preventDefault();
+  const f = e.target, err = $('meErr');
+  if (f.pw.value.length < 6) { err.textContent = '새 비밀번호는 6자 이상이어야 합니다.'; return; }
+  if (f.pw.value !== f.pw2.value) { err.textContent = '새 비밀번호 확인이 맞지 않습니다.'; return; }
+  try {
+    const u = fbx.auth.currentUser;
+    await fbx.A.reauthenticateWithCredential(u, fbx.A.EmailAuthProvider.credential(u.email, f.cur.value));
+    await fbx.A.updatePassword(u, f.pw.value);
+    $('dlgMe').close(); notify('비밀번호를 바꿨습니다. 다음 로그인부터 새 비밀번호를 쓰세요.');
+  } catch (er) { err.textContent = ['auth/invalid-credential', 'auth/wrong-password', 'auth/invalid-login-credentials'].includes(er?.code) ? '지금 비밀번호가 맞지 않습니다.' : authMsg(er); }
+});
+
+async function fbStartup() {
+  showAuth('loading');
+  try { await fbLoad(); }
+  catch { showAuth('denied', 'Firebase를 불러오지 못했습니다. 인터넷 연결과 config.js 설정을 확인해 주세요.'); return; }
+  fbx.A.onAuthStateChanged(fbx.auth, user => fbOnUser(user));
+}
+
+/* ================= 시작 ================= */
+function render() { renderList(); renderMain(); renderSync(); }
+
+(async () => {
+  if ('serviceWorker' in navigator && location.protocol !== 'file:')
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  if (!isMobile()) document.body.classList.add('show-detail');
+  if (FB_ON) { render(); fbStartup(); return; }
+  if (cloudEnabled()) await handleRedirect();
+  render();
+
+  if (cloudEnabled()) {
+    const tok = await getToken().catch(() => null);
+    let tried = false;
+    try { tried = sessionStorage.getItem('cm2-silent') === '1'; sessionStorage.setItem('cm2-silent', '1'); } catch {}
+    if (!tok && lsGet(LS.connected, false) && !tried) { login('none'); return; }  // 로그인 유지 자동 갱신
+    if (!tok) setSync('auth'); else sync();
+  }
+  if (mode === 'folder') {
+    if (await folderReady(false).catch(() => false)) folderLoad();
+    else setSync('folder-perm');
+  }
+})();
+</script>
+</body>
+</html>
